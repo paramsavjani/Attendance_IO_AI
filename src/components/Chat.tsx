@@ -273,10 +273,10 @@ export function Chat({
               // paints through the first glyph and the word reads as clipped.
               placeholder={
                 blocked
-                  ? " Sign in to keep asking…"
+                  ? "Sign in to keep asking…"
                   : busy
-                    ? " Type your next question…"
-                    : " Ask about clubs, faculty, placements, alumni…"
+                    ? "Type your next question…"
+                    : "Ask about clubs, faculty, placements, alumni…"
               }
               rows={1}
               enterKeyHint="send"
