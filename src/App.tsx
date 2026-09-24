@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Github, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Chat } from "./components/Chat";
 import { Logo } from "./components/Logo";
 import { AccountMenu } from "./components/AccountMenu";
+import { GithubMark } from "./components/GithubMark";
 import { fetchDemoInfo, type DemoInfo } from "./lib/agent";
 import { nudgeGoogleOneTap, signOut, storedCredential, type GoogleUser } from "./lib/auth";
 import { cn } from "./lib/utils";
@@ -83,15 +84,17 @@ export default function App() {
           >
             <Plus className="h-[18px] w-[18px]" />
           </button>
+          {/* Each destination wears its own mark on a white disc — GitHub's here, the app's below.
+              The outlined button beside them is an action, not a place, so it stays unbranded. */}
           <a
             href={REPO_URL}
             target="_blank"
             rel="noreferrer noopener"
             aria-label="Source on GitHub"
             title="Source on GitHub"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/80 bg-surface/50 text-muted-foreground transition-colors hover:border-border hover:bg-surface hover:text-foreground"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#181717] transition-opacity hover:opacity-85"
           >
-            <Github className="h-[17px] w-[17px]" />
+            <GithubMark className="h-[21px] w-[21px]" />
           </a>
 
           {/* The app's own icon rides inside the button, on a white disc so the colour mark reads
