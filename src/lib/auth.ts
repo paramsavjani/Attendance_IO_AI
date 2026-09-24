@@ -144,7 +144,9 @@ export async function initGoogleSignIn(
     renderButton: (container: HTMLElement) => {
       container.replaceChildren();
       identity.renderButton(container, {
-        theme: "filled_black",
+        // White button on a dark card: the one light element on the page, so it reads as the
+        // thing to press. Google's "outline" theme is their white treatment.
+        theme: "outline",
         size: "large",
         shape: "pill",
         text: "continue_with",
