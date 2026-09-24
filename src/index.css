@@ -131,6 +131,25 @@
   display: none;
 }
 
+/* Google's own button, laid invisibly over a button of ours. Only a real click on their element
+   opens Google's account chooser, so the visitor sees our button and presses theirs. Their markup
+   carries fixed pixel sizes, hence the forced fill. */
+.google-overlay {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+.google-overlay > div,
+.google-overlay > div > div,
+.google-overlay div[role="button"],
+.google-overlay iframe {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
 /* Typing indicator, shown while an answer has been asked for but nothing has streamed yet. */
 .typing-dot {
   animation: typing-bounce 1.2s ease-in-out infinite;

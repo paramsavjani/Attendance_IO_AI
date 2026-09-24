@@ -61,7 +61,9 @@ export default function App() {
       style={{ height: viewportHeight ? `${viewportHeight}px` : "100dvh" }}
     >
       <header
-        className="flex shrink-0 justify-center border-b border-border/70 bg-background/80 px-5 pb-3 backdrop-blur-xl sm:px-8"
+        // relative z-30: backdrop-blur makes this a stacking context of its own, so without a
+        // z-index here the message list below paints straight over the open account menu.
+        className="relative z-30 flex shrink-0 justify-center border-b border-border/70 bg-background/80 px-5 pb-3 backdrop-blur-xl sm:px-8"
         style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
         <div className="flex w-full max-w-answer items-center gap-2">

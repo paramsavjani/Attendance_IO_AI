@@ -96,8 +96,12 @@ export function signOut() {
 }
 
 export interface SignInHandles {
-  /** Draws Google's own button into [container]; theirs, because only theirs may say "Google". */
-  renderButton: (container: HTMLElement) => void;
+  /**
+   * Draws Google's own button into [container]; theirs, because only theirs may say "Google" — and
+   * because only a real click on it opens Google's account chooser. [overrides] tune its shape for
+   * callers that lay it invisibly over a button of their own.
+   */
+  renderButton: (container: HTMLElement, overrides?: Record<string, string | number>) => void;
 }
 
 type IdentityApi = NonNullable<NonNullable<Window["google"]>["accounts"]>["id"];
@@ -149,7 +153,7 @@ export async function initGoogleSignIn(
   if (!identity) return null;
 
   return {
-    renderButton: (container: HTMLElement) => {
+    renderButton: (container: HTMLElement, overrides?: Record<string, string | number>) => {
       container.replaceChildren();
       identity.renderButton(container, {
         // White button on a dark card: the one light element on the page, so it reads as the
@@ -159,6 +163,7 @@ export async function initGoogleSignIn(
         shape: "pill",
         text: "continue_with",
         logo_alignment: "center",
+        ...overrides,
       });
     },
   };
@@ -187,7 +192,7 @@ declare global {
             callback: (response: { credential?: string }) => void;
             auto_select?: boolean;
           }) => void;
-          renderButton: (parent: HTMLElement, options: Record<string, string>) => void;
+          renderButton: (parent: HTMLElement, options: Record<string, string | number>) => void;
           prompt?: () => void;
           disableAutoSelect?: () => void;
         };

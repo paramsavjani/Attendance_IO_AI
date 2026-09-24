@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { LogOut } from "lucide-react";
 import { GoogleButton } from "./GoogleButton";
+import { GoogleTrigger } from "./GoogleTrigger";
 import type { GoogleUser } from "@/lib/auth";
 
 /**
@@ -71,15 +72,11 @@ export function AccountMenu({
           )}
         </button>
       ) : (
-        <button
-          type="button"
-          onClick={() => setOpen((was) => !was)}
-          aria-haspopup="dialog"
-          aria-expanded={open}
-          className="inline-flex h-9 items-center rounded-full border border-border bg-surface/50 px-3.5 text-[13.5px] font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-surface sm:px-4"
-        >
-          Sign in
-        </button>
+        <GoogleTrigger clientId={clientId} onSignedIn={handleSignedIn} onUnavailable={() => setOpen(true)}>
+          <span className="inline-flex h-9 items-center rounded-full border border-border bg-surface/50 px-3.5 text-[13.5px] font-medium text-foreground transition-colors hover:border-primary/50 hover:bg-surface sm:px-4">
+            Sign in
+          </span>
+        </GoogleTrigger>
       )}
 
       {open && (
@@ -124,14 +121,13 @@ export function AccountMenu({
               </button>
             </>
           ) : (
+            // Only reached when Google's script never loaded — the button above goes straight to
+            // their chooser whenever it did.
             <div className="flex flex-col items-center gap-3 px-4 py-4 text-center">
-              <p className="text-[13px] leading-relaxed text-muted-foreground">
-                Sign in for {dailyLimit ?? 15} questions a day.
-              </p>
               <GoogleButton
                 clientId={clientId}
                 onSignedIn={handleSignedIn}
-                unavailableText="Sign-in isn't configured yet."
+                unavailableText="Sign-in isn't available right now. An ad blocker or a strict privacy setting usually causes that."
               />
             </div>
           )}
