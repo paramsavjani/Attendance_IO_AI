@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Github, LogOut, RotateCcw } from "lucide-react";
+import { ArrowUpRight, Github, LogOut, Plus } from "lucide-react";
 import { Chat } from "./components/Chat";
 import { Logo } from "./components/Logo";
 import { fetchDemoInfo, type DemoInfo } from "./lib/agent";
@@ -58,21 +58,18 @@ export default function App() {
         <div className={cn(CONTENT_WIDTH, "flex items-center gap-2")}>
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
             <Logo className="h-8 w-8 shrink-0 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]" />
-            <div className="min-w-0">
-              <h1 className="truncate text-[15px] font-semibold leading-tight">Attendance IO AI</h1>
-              <p className="truncate text-[11px] text-muted-foreground">Clubs, faculty, placements &amp; alumni</p>
-            </div>
+            <h1 className="truncate text-[15px] font-semibold leading-tight">Attendance IO AI</h1>
           </div>
 
-          <div className="flex items-center gap-0.5 rounded-full bg-muted/40 p-0.5">
+          <div className="flex items-center gap-1 rounded-full bg-muted/40 p-1">
             <button
               type="button"
               onClick={() => resetChat.current?.()}
               aria-label="New chat"
               title="New chat"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
-              <RotateCcw className="h-[18px] w-[18px]" />
+              <Plus className="h-[18px] w-[18px]" />
             </button>
             <a
               href={REPO_URL}
@@ -80,7 +77,7 @@ export default function App() {
               rel="noreferrer noopener"
               aria-label="Source on GitHub"
               title="Source on GitHub"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <Github className="h-[18px] w-[18px]" />
             </a>

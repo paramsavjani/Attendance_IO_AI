@@ -211,8 +211,6 @@ export function Chat({
               {blocked && (
                 <SignInCard
                   clientId={info?.googleClientId ?? null}
-                  limit={info?.signedInLimit ?? 15}
-                  question={pending.current}
                   onSignedIn={(user) => {
                     onSignedIn(user);
                     setNeedsSignIn(false);

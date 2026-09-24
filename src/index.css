@@ -10,14 +10,16 @@
 /* The Attendance IO palette: near-black, one indigo accent, everything else grey. */
 @layer base {
   :root {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 8%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
+    /* A touch of indigo mixed into the near-black, and cards/borders lifted a step further off the
+       background, so the page reads as a dark surface rather than a flat black slab. */
+    --background: 240 8% 6%;
+    --foreground: 0 0% 96%;
+    --card: 240 8% 11%;
+    --muted: 240 6% 17%;
+    --muted-foreground: 0 0% 63%;
     --primary: 234 89% 64%;
     --primary-foreground: 0 0% 100%;
-    --border: 0 0% 16%;
+    --border: 240 6% 21%;
   }
 
   * {
@@ -160,13 +162,15 @@
     padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
   }
 
-  /* The soft indigo glow behind the hero mark, plus two quiet accents at the far edges so a wide
-     desktop window doesn't read as a mobile column stranded on flat black. */
+  /* The soft indigo glow behind the hero mark, two quiet accents at the far edges so a wide desktop
+     window doesn't read as a mobile column stranded on flat black, and a faint dot grid so the
+     black itself has some texture instead of reading as an empty slab. */
   .hero-glow {
     background:
-      radial-gradient(38% 55% at 50% 0%, hsl(234 89% 64% / 0.16) 0%, transparent 70%),
-      radial-gradient(30% 45% at 0% 100%, hsl(234 89% 64% / 0.07) 0%, transparent 70%),
-      radial-gradient(30% 45% at 100% 15%, hsl(262 60% 55% / 0.07) 0%, transparent 70%);
+      radial-gradient(38% 55% at 50% 0%, hsl(234 89% 64% / 0.18) 0%, transparent 70%),
+      radial-gradient(30% 45% at 0% 100%, hsl(234 89% 64% / 0.09) 0%, transparent 70%),
+      radial-gradient(30% 45% at 100% 15%, hsl(262 60% 55% / 0.09) 0%, transparent 70%),
+      radial-gradient(hsl(0 0% 100% / 0.05) 1px, transparent 1px) 0 0/24px 24px;
     background-color: hsl(var(--background));
   }
 }
