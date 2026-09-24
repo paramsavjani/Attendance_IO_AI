@@ -3,7 +3,7 @@ import { ArrowUpRight, Github, LogOut, Plus } from "lucide-react";
 import { Chat } from "./components/Chat";
 import { Logo } from "./components/Logo";
 import { fetchDemoInfo, type DemoInfo } from "./lib/agent";
-import { signOut, storedCredential, type GoogleUser } from "./lib/auth";
+import { nudgeGoogleOneTap, signOut, storedCredential, type GoogleUser } from "./lib/auth";
 import { cn } from "./lib/utils";
 
 const APP_URL = "https://attendanceio.paramsavjani.in";
@@ -17,6 +17,7 @@ export default function App() {
   const [token, setToken] = useState<string | null>(() => storedCredential()?.token ?? null);
   const resetChat = useRef<(() => void) | null>(null);
   const viewportHeight = useVisualViewportHeight();
+  const nudgedOneTap = useRef(false);
 
   const refreshInfo = useCallback(
     (signal?: AbortSignal) => {
@@ -38,6 +39,15 @@ export default function App() {
     setUser(signedIn);
     setToken(stored?.token ?? null);
   }, []);
+
+  // Once, right after their first answer: Google's own dismissible card, for anyone who would
+  // rather sign in early than wait to be asked. Never on the very first paint — that would read as
+  // a login wall before a visitor has seen the assistant do anything.
+  const offerOneTap = useCallback(() => {
+    if (nudgedOneTap.current || user || !info?.googleClientId) return;
+    nudgedOneTap.current = true;
+    void nudgeGoogleOneTap(info.googleClientId, onSignedIn);
+  }, [info?.googleClientId, onSignedIn, user]);
 
   const leave = () => {
     signOut();
@@ -61,27 +71,25 @@ export default function App() {
             <h1 className="truncate text-[15px] font-semibold leading-tight">Attendance IO AI</h1>
           </div>
 
-          <div className="flex items-center gap-1 rounded-full bg-muted/40 p-1">
-            <button
-              type="button"
-              onClick={() => resetChat.current?.()}
-              aria-label="New chat"
-              title="New chat"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <Plus className="h-[18px] w-[18px]" />
-            </button>
-            <a
-              href={REPO_URL}
-              target="_blank"
-              rel="noreferrer noopener"
-              aria-label="Source on GitHub"
-              title="Source on GitHub"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <Github className="h-[18px] w-[18px]" />
-            </a>
-          </div>
+          <button
+            type="button"
+            onClick={() => resetChat.current?.()}
+            aria-label="New chat"
+            title="New chat"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Plus className="h-[18px] w-[18px]" />
+          </button>
+          <a
+            href={REPO_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label="Source on GitHub"
+            title="Source on GitHub"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Github className="h-[18px] w-[18px]" />
+          </a>
 
           {user ? (
             <button
@@ -118,7 +126,10 @@ export default function App() {
         info={info}
         token={token}
         onSignedIn={onSignedIn}
-        onAnswered={() => refreshInfo()}
+        onAnswered={() => {
+          refreshInfo();
+          offerOneTap();
+        }}
         onReset={(reset) => {
           resetChat.current = reset;
         }}

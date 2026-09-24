@@ -74,11 +74,13 @@
 
 .gemini-border > .gemini-inner {
   border-radius: calc(1.25rem - 1.5px);
-  background: hsl(var(--background));
+  /* Lifted off the page background (not matched to it) — the composer should read as a distinct
+     box at rest, not disappear until it's focused. */
+  background: hsl(var(--card));
 }
 
 .gemini-border.is-idle {
-  background: linear-gradient(135deg, hsl(0 0% 24%), hsl(0 0% 16%) 45%, hsl(262 40% 30%));
+  background: linear-gradient(135deg, hsl(0 0% 32%), hsl(0 0% 22%) 45%, hsl(262 45% 40%));
 }
 
 .gemini-border.is-focused {

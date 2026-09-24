@@ -304,21 +304,19 @@ export function Chat({
 function EmptyState({ suggestions, onPick }: { suggestions: string[]; onPick: (s: string) => void }) {
   return (
     <div className="flex flex-col items-center px-1 pb-2 pt-6 text-center">
-      <Logo className="mb-4 h-20 w-20 drop-shadow-[0_4px_14px_rgba(0,0,0,0.55)]" />
-      <h2 className="text-[19px] font-semibold">Ask anything about DAU</h2>
-      <p className="mt-2 max-w-sm text-[13.5px] leading-relaxed text-muted-foreground">
-        The assistant built into <span className="text-foreground">Attendance IO</span>, the app DA-IICT
-        students use every day. It has read every notice, handbook, timetable and placement report the
-        institute publishes — programmes and curriculum, faculty, clubs, placements, alumni and campus
-        life — and answers in a few seconds. Ask it like you'd ask a senior.
+      <Logo className="mb-4 h-16 w-16 drop-shadow-[0_4px_14px_rgba(0,0,0,0.55)]" />
+      <h2 className="text-[18px] font-semibold">Ask anything about DAU</h2>
+      <p className="mt-1.5 max-w-xs text-[12.5px] leading-relaxed text-muted-foreground">
+        Built into <span className="text-foreground">Attendance IO</span> — programmes, faculty, clubs,
+        placements, alumni and campus life. Ask it like you'd ask a senior.
       </p>
-      <div className="mt-5 flex w-full flex-col gap-2">
+      <div className="mt-5 flex w-full max-w-sm flex-col gap-2">
         {suggestions.slice(0, 4).map((suggestion) => (
           <button
             key={suggestion}
             type="button"
             onClick={() => onPick(suggestion)}
-            className="rounded-2xl border border-border bg-card px-3.5 py-2.5 text-left text-[13.5px] text-foreground/90 transition-colors hover:border-primary/40 active:scale-[0.99]"
+            className="rounded-2xl border border-border bg-card px-3.5 py-2.5 text-left text-[13px] text-foreground/90 transition-colors hover:border-primary/40 active:scale-[0.99]"
           >
             {suggestion}
           </button>

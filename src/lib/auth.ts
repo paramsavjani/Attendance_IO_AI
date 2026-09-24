@@ -92,6 +92,41 @@ export interface SignInHandles {
   renderButton: (container: HTMLElement) => void;
 }
 
+type IdentityApi = NonNullable<NonNullable<Window["google"]>["accounts"]>["id"];
+
+// One identity client for the whole page — Google's initialize() may only run once per client id.
+// The callback it fires into is swapped out per caller instead, so both the rendered button (once
+// the free questions run out) and the passive one-tap nudge (right after the first answer) resolve
+// through the same session no matter which one the visitor actually used.
+let identityPromise: Promise<IdentityApi | null> | null = null;
+let activeCallback: ((user: GoogleUser) => void) | null = null;
+
+function ensureIdentity(clientId: string): Promise<IdentityApi | null> {
+  if (identityPromise) return identityPromise;
+  identityPromise = loadScript()
+    .then(() => {
+      const identity = window.google?.accounts?.id;
+      if (!identity) return null;
+      identity.initialize({
+        client_id: clientId,
+        auto_select: false,
+        callback: (response: { credential?: string }) => {
+          const credential = response.credential ? describe(response.credential) : null;
+          if (!credential) return;
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(credential));
+          } catch {
+            /* storage unavailable; the session still works until reload */
+          }
+          activeCallback?.(credential);
+        },
+      });
+      return identity;
+    })
+    .catch(() => null);
+  return identityPromise;
+}
+
 /**
  * Initialises Google sign-in for [clientId] and calls [onSignedIn] once the visitor picks an
  * account. Resolves to null when Google's script cannot be reached, so the page can carry on
@@ -101,27 +136,9 @@ export async function initGoogleSignIn(
   clientId: string,
   onSignedIn: (user: GoogleUser) => void
 ): Promise<SignInHandles | null> {
-  try {
-    await loadScript();
-  } catch {
-    return null;
-  }
-  const identity = window.google?.accounts?.id;
+  activeCallback = onSignedIn;
+  const identity = await ensureIdentity(clientId);
   if (!identity) return null;
-
-  identity.initialize({
-    client_id: clientId,
-    callback: (response: { credential?: string }) => {
-      const credential = response.credential ? describe(response.credential) : null;
-      if (!credential) return;
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(credential));
-      } catch {
-        /* storage unavailable; the session still works until reload */
-      }
-      onSignedIn(credential);
-    },
-  });
 
   return {
     renderButton: (container: HTMLElement) => {
@@ -137,13 +154,31 @@ export async function initGoogleSignIn(
   };
 }
 
+/**
+ * A passive, dismissible nudge — Google's own One Tap card, floated in a corner by Google itself.
+ * Meant to run once, after a visitor's first answer, for anyone who would rather sign in early than
+ * wait to be asked. It never blocks the page: closing it (or Google declining to show it at all,
+ * which it does often — cooldowns, no eligible session, browser settings) just leaves the free
+ * questions running as normal.
+ */
+export async function nudgeGoogleOneTap(clientId: string, onSignedIn: (user: GoogleUser) => void): Promise<void> {
+  activeCallback = onSignedIn;
+  const identity = await ensureIdentity(clientId);
+  identity?.prompt?.();
+}
+
 declare global {
   interface Window {
     google?: {
       accounts?: {
         id?: {
-          initialize: (config: { client_id: string; callback: (response: { credential?: string }) => void }) => void;
+          initialize: (config: {
+            client_id: string;
+            callback: (response: { credential?: string }) => void;
+            auto_select?: boolean;
+          }) => void;
           renderButton: (parent: HTMLElement, options: Record<string, string>) => void;
+          prompt?: () => void;
           disableAutoSelect?: () => void;
         };
       };
