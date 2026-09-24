@@ -268,16 +268,19 @@ export function Chat({
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               disabled={blocked}
+              // The leading space is deliberate: the caret sits at position 0, and the opening
+              // letter of each of these is drawn flush to that same point, so without it the cursor
+              // paints through the first glyph and the word reads as clipped.
               placeholder={
                 blocked
-                  ? "Sign in to keep asking…"
+                  ? " Sign in to keep asking…"
                   : busy
-                    ? "Type your next question…"
-                    : "Ask about clubs, faculty, placements, alumni…"
+                    ? " Type your next question…"
+                    : " Ask about clubs, faculty, placements, alumni…"
               }
               rows={1}
               enterKeyHint="send"
-              className="composer-input max-h-52 min-h-[44px] w-full resize-none bg-transparent text-[16px] leading-[1.6] text-foreground caret-primary outline-none placeholder:text-muted-foreground focus:placeholder:text-transparent disabled:opacity-60 sm:min-h-[52px]"
+              className="composer-input max-h-52 min-h-[44px] w-full resize-none bg-transparent text-[16px] leading-[1.6] text-foreground caret-primary outline-none placeholder:text-muted-foreground disabled:opacity-60 sm:min-h-[52px]"
             />
             <div className="flex items-end justify-between gap-3">
               <span className="pb-1 text-[12px] text-muted-foreground sm:text-[12.5px]">{remaining}</span>
