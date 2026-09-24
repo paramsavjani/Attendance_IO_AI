@@ -6,6 +6,7 @@ import { SignInCard } from "./SignInCard";
 import { STATUS_TEXT, SignInRequiredError, streamDemoChat, type AgentStreamEvent, type DemoInfo } from "@/lib/agent";
 import { cn } from "@/lib/utils";
 import { storedCredential, type GoogleUser } from "@/lib/auth";
+import { CONTENT_WIDTH } from "@/App";
 
 interface ChatMessage {
   id: string;
@@ -192,7 +193,7 @@ export function Chat({
           onScroll={onListScroll}
           className="h-full overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-4"
         >
-          <div className="mx-auto flex w-full max-w-lg flex-col gap-3">
+          <div className={cn(CONTENT_WIDTH, "mx-auto flex flex-col gap-3")}>
             {messages.length === 0 && !blocked ? (
               <EmptyState
                 suggestions={info?.suggestions?.length ? info.suggestions : FALLBACK_SUGGESTIONS}
@@ -235,7 +236,7 @@ export function Chat({
       </div>
 
       <div className="shrink-0 px-3 pt-2" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)" }}>
-        <div className={cn("gemini-border mx-auto w-full max-w-lg", composerState)}>
+        <div className={cn("gemini-border mx-auto", CONTENT_WIDTH, composerState)}>
           <div className="gemini-inner flex flex-col px-3.5 pb-2 pt-3">
             <textarea
               ref={textarea}
@@ -298,9 +299,7 @@ export function Chat({
 function EmptyState({ suggestions, onPick }: { suggestions: string[]; onPick: (s: string) => void }) {
   return (
     <div className="flex flex-col items-center px-1 pb-2 pt-6 text-center">
-      <div className="liquid-nav mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl">
-        <Logo className="h-full w-full object-cover" />
-      </div>
+      <Logo className="mb-4 h-20 w-20 drop-shadow-[0_4px_14px_rgba(0,0,0,0.55)]" />
       <h2 className="text-[19px] font-semibold">Ask anything about DAU</h2>
       <p className="mt-2 max-w-sm text-[13.5px] leading-relaxed text-muted-foreground">
         The assistant built into <span className="text-foreground">Attendance IO</span>, the app DA-IICT

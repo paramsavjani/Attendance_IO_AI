@@ -40,9 +40,7 @@ export function SignInCard({
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border border-border bg-card px-5 py-6 text-center">
-      <div className="liquid-nav mb-3 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl">
-        <Logo className="h-full w-full object-cover" />
-      </div>
+      <Logo className="mb-3 h-14 w-14 drop-shadow-[0_3px_10px_rgba(0,0,0,0.5)]" />
       <h2 className="text-[16px] font-semibold">Sign in to keep asking</h2>
       {question && (
         <p className="mt-2 rounded-xl bg-muted/60 px-3 py-2 text-[13px] leading-snug text-foreground/90">
