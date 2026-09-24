@@ -1,65 +1,81 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, Check, Copy, RotateCcw, Square } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, Copy, RotateCcw, Square } from "lucide-react";
 import { Markdown } from "./Markdown";
 import { Spark } from "./Spark";
-import { STATUS_TEXT, streamDemoChat, type AgentStreamEvent } from "@/lib/agent";
+import { SignInCard } from "./SignInCard";
+import { STATUS_TEXT, SignInRequiredError, streamDemoChat, type AgentStreamEvent, type DemoInfo } from "@/lib/agent";
 import { cn } from "@/lib/utils";
+import { storedCredential, type GoogleUser } from "@/lib/auth";
 
 interface ChatMessage {
   id: string;
   role: "USER" | "ASSISTANT";
   content: string;
-  /** Set when the turn failed; rendered in place of the answer, with a retry. */
   error?: string;
-  /** The question this answer belongs to, so "try again" can resend it. */
+  /** The question this answer belongs to, so a failed turn can be retried. */
   question?: string;
   streaming?: boolean;
-  /** What the assistant is doing while nothing has streamed yet. */
   status?: string;
-  seconds?: number;
 }
 
 const newId = () => Math.random().toString(36).slice(2);
 
 export function Chat({
-  suggestions,
-  onFirstMessage,
+  info,
+  token,
+  onSignedIn,
+  onAnswered,
+  onReset,
 }: {
-  suggestions: string[];
-  onFirstMessage: () => void;
+  info: DemoInfo | null;
+  token: string | null;
+  onSignedIn: (user: GoogleUser) => void;
+  onAnswered: () => void;
+  onReset: (reset: () => void) => void;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
+  const [showJump, setShowJump] = useState(false);
+  /** The question that ran into the sign-in wall, asked for them once they are in. */
+  const pending = useRef<string | null>(null);
+
   const conversationId = useRef<string | null>(null);
   const abort = useRef<AbortController | null>(null);
-  const bottom = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLDivElement>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
-  /** False once the visitor scrolls up, so an answer never yanks the page back down. */
-  const stickToBottom = useRef(true);
+  /** False once the visitor scrolls up, so a streaming answer never yanks them back down. */
+  const pinned = useRef(true);
+
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    const element = list.current;
+    if (element) element.scrollTo({ top: element.scrollHeight, behavior });
+  };
+
+  const onListScroll = () => {
+    const element = list.current;
+    if (!element) return;
+    const fromBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
+    pinned.current = fromBottom < 80;
+    setShowJump(fromBottom > 240);
+  };
 
   useEffect(() => {
-    const onScroll = () => {
-      const fromBottom = document.documentElement.scrollHeight - window.scrollY - window.innerHeight;
-      stickToBottom.current = fromBottom < 120;
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    if (stickToBottom.current) bottom.current?.scrollIntoView({ block: "end" });
+    if (pinned.current) scrollToBottom();
   }, [messages]);
 
-  const patch = (id: string, change: Partial<ChatMessage>) =>
-    setMessages((previous) => previous.map((m) => (m.id === id ? { ...m, ...change } : m)));
+  const update = (id: string, change: Partial<ChatMessage> | ((m: ChatMessage) => Partial<ChatMessage>)) =>
+    setMessages((previous) =>
+      previous.map((m) => (m.id === id ? { ...m, ...(typeof change === "function" ? change(m) : change) } : m))
+    );
 
-  const ask = useCallback(
+  const send = useCallback(
     async (question: string) => {
       const text = question.trim();
       if (!text || busy) return;
 
-      if (messages.length === 0) onFirstMessage();
       const answerId = newId();
       setMessages((previous) => [
         ...previous,
@@ -68,16 +84,19 @@ export function Chat({
       ]);
       setInput("");
       setBusy(true);
-      stickToBottom.current = true;
+      setNeedsSignIn(false);
+      pinned.current = true;
 
       const controller = new AbortController();
       abort.current = controller;
-      const startedAt = Date.now();
 
       try {
         await streamDemoChat({
           message: text,
           conversationId: conversationId.current,
+          // Read at call time: a question resumed right after signing in needs the new token,
+          // which the parent has not handed down yet.
+          token: token ?? storedCredential()?.token ?? null,
           signal: controller.signal,
           onEvent: (event: AgentStreamEvent) => {
             switch (event.type) {
@@ -85,133 +104,216 @@ export function Chat({
                 conversationId.current = event.conversationId;
                 break;
               case "STATUS":
-                patch(answerId, { status: STATUS_TEXT[event.text] ?? "Looking that up…" });
+                update(answerId, (m) => (m.content ? {} : { status: STATUS_TEXT[event.text] ?? "Working on it…" }));
                 break;
               case "TOKEN":
-                setMessages((previous) =>
-                  previous.map((m) =>
-                    m.id === answerId ? { ...m, content: m.content + event.text, status: undefined } : m
-                  )
-                );
+                update(answerId, (m) => ({ content: m.content + event.text, status: undefined }));
                 break;
               case "DONE":
-                patch(answerId, {
-                  streaming: false,
-                  status: undefined,
-                  seconds: Math.round((Date.now() - startedAt) / 100) / 10,
-                });
+                update(answerId, { streaming: false, status: undefined });
                 break;
               case "ERROR":
-                patch(answerId, { streaming: false, status: undefined, error: event.error });
+                update(answerId, { streaming: false, status: undefined, error: event.error });
                 break;
             }
           },
         });
+        update(answerId, (m) => (m.streaming ? { streaming: false, status: undefined } : {}));
       } catch (e) {
-        const message = e instanceof Error ? e.message : "Something went wrong.";
-        // An aborted stream is the visitor pressing stop, not a failure.
-        if (controller.signal.aborted) patch(answerId, { streaming: false, status: undefined });
-        else patch(answerId, { streaming: false, status: undefined, error: message });
+        const aborted = controller.signal.aborted;
+        if (e instanceof SignInRequiredError) {
+          // Not a failure: they have used their free questions, so the page asks for an account.
+          // The question is held back — bubbles and all — and asked again once they are in.
+          pending.current = text;
+          setNeedsSignIn(true);
+          setMessages((previous) => previous.slice(0, -2));
+        } else {
+          update(answerId, (m) => ({
+            streaming: false,
+            status: undefined,
+            error: aborted ? undefined : e instanceof Error ? e.message : "Something went wrong. Please try again.",
+            content: aborted && !m.content ? "Stopped." : m.content,
+          }));
+        }
       } finally {
-        setMessages((previous) => previous.map((m) => (m.id === answerId ? { ...m, streaming: false } : m)));
-        setBusy(false);
         abort.current = null;
+        setBusy(false);
+        onAnswered();
       }
     },
-    [busy, messages.length, onFirstMessage]
+    [busy, onAnswered, token]
   );
 
+  const retry = (message: ChatMessage) => {
+    if (!message.question || busy) return;
+    setMessages((previous) => previous.filter((m) => m.id !== message.id));
+    void send(message.question);
+  };
+
   const stop = () => abort.current?.abort();
+
+  useEffect(() => {
+    onReset(() => {
+      abort.current?.abort();
+      setMessages([]);
+      setInput("");
+      setNeedsSignIn(false);
+      conversationId.current = null;
+      textarea.current?.focus();
+    });
+  }, [onReset]);
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      void ask(input);
+      void send(input);
     }
   };
 
-  const grow = (element: HTMLTextAreaElement) => {
-    element.style.height = "auto";
-    element.style.height = `${Math.min(element.scrollHeight, 168)}px`;
-  };
+  const composerState = busy ? "is-thinking" : focused ? "is-focused" : "is-idle";
+  const blocked = needsSignIn && !token;
 
   return (
     <>
-      {messages.length === 0 ? (
-        <Suggestions suggestions={suggestions} onPick={(s) => void ask(s)} />
-      ) : (
-        <div className="space-y-6 pb-4">
-          {messages.map((message) =>
-            message.role === "USER" ? (
-              <div key={message.id} className="flex justify-end">
-                <p className="max-w-[85%] animate-fade-up whitespace-pre-wrap rounded-2xl rounded-br-md bg-primary/15 px-4 py-2.5 text-[15px] leading-relaxed ring-1 ring-primary/25">
-                  {message.content}
-                </p>
-              </div>
-            ) : (
-              <Answer key={message.id} message={message} onRetry={() => void ask(message.question ?? "")} />
-            )
-          )}
-          <div ref={bottom} />
-        </div>
-      )}
-
-      <div className="safe-bottom sticky bottom-0 z-10 bg-gradient-to-t from-background via-background to-background/80 pt-3 backdrop-blur">
+      <div className="relative min-h-0 flex-1">
         <div
-          className={cn(
-            "flex items-end gap-2 rounded-3xl border border-border bg-card p-2 pl-4 transition-colors",
-            "focus-within:border-primary/50"
-          )}
+          ref={list}
+          onScroll={onListScroll}
+          className="h-full overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-4"
         >
-          <textarea
-            ref={textarea}
-            value={input}
-            rows={1}
-            onChange={(event) => {
-              setInput(event.target.value);
-              grow(event.target);
-            }}
-            onKeyDown={onKeyDown}
-            placeholder="Ask about clubs, faculty, placements, alumni…"
-            className="max-h-42 flex-1 resize-none bg-transparent py-2 text-[15px] outline-none placeholder:text-muted-foreground"
-          />
+          <div className="mx-auto flex w-full max-w-lg flex-col gap-3">
+            {messages.length === 0 && !blocked ? (
+              <EmptyState suggestions={info?.suggestions ?? []} onPick={(s) => void send(s)} />
+            ) : (
+              messages.map((m) => <Bubble key={m.id} message={m} onRetry={retry} />)
+            )}
+            {blocked && (
+              <SignInCard
+                clientId={info?.googleClientId ?? null}
+                limit={info?.signedInLimit ?? 15}
+                question={pending.current}
+                onSignedIn={(user) => {
+                  onSignedIn(user);
+                  setNeedsSignIn(false);
+                  const question = pending.current;
+                  pending.current = null;
+                  if (question) void send(question);
+                }}
+              />
+            )}
+          </div>
+        </div>
+
+        {showJump && (
           <button
             type="button"
-            onClick={() => (busy ? stop() : void ask(input))}
-            disabled={!busy && !input.trim()}
-            aria-label={busy ? "Stop" : "Send"}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-opacity disabled:opacity-30"
+            onClick={() => {
+              pinned.current = true;
+              setShowJump(false);
+              scrollToBottom();
+            }}
+            className="liquid-nav absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-foreground"
           >
-            {busy ? <Square className="h-4 w-4" fill="currentColor" /> : <ArrowUp className="h-5 w-5" />}
+            <ArrowDown className="h-3.5 w-3.5" />
+            Latest
           </button>
+        )}
+      </div>
+
+      <div className="shrink-0 px-3 pt-2" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)" }}>
+        <div className={cn("gemini-border mx-auto w-full max-w-lg", composerState)}>
+          <div className="gemini-inner flex flex-col px-3.5 pb-2 pt-3">
+            <textarea
+              ref={textarea}
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={onKeyDown}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              disabled={blocked}
+              placeholder={
+                blocked
+                  ? "Sign in to keep asking…"
+                  : busy
+                    ? "Type your next question…"
+                    : "Ask about clubs, faculty, placements, alumni…"
+              }
+              rows={1}
+              enterKeyHint="send"
+              className="w-full resize-none bg-transparent text-[15px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-60"
+            />
+            <div className="mt-1.5 flex items-center justify-between gap-2">
+              <span className="text-[11px] text-muted-foreground">
+                {info && !info.signedIn && info.remaining > 0 && messages.length > 0
+                  ? `${info.remaining} free ${info.remaining === 1 ? "question" : "questions"} left`
+                  : info?.signedIn && info.remaining <= 5
+                    ? `${info.remaining} left today`
+                    : ""}
+              </span>
+              {busy ? (
+                <button
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={stop}
+                  aria-label="Stop"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background active:scale-90"
+                >
+                  <Square className="h-3.5 w-3.5 fill-current" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  // preventDefault keeps focus in the textarea, so the phone keyboard stays up.
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => void send(input)}
+                  disabled={!input.trim() || blocked}
+                  aria-label="Send"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity active:scale-90 disabled:opacity-40"
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-        <p className="px-1 pb-2 pt-2 text-center text-[11px] leading-snug text-muted-foreground">
-          Institute information only — no student's attendance is reachable here. The assistant can be
-          wrong; double-check anything that matters.
+        <p className="mx-auto mt-2 max-w-lg text-center text-[11px] leading-snug text-muted-foreground">
+          Institute information only — no student's attendance is reachable here. The assistant can be wrong;
+          double-check anything that matters.
         </p>
       </div>
     </>
   );
 }
 
-function Suggestions({ suggestions, onPick }: { suggestions: string[]; onPick: (s: string) => void }) {
+function EmptyState({ suggestions, onPick }: { suggestions: string[]; onPick: (s: string) => void }) {
   return (
-    <div className="grid gap-2 pb-6 sm:grid-cols-2">
-      {suggestions.map((suggestion) => (
-        <button
-          key={suggestion}
-          type="button"
-          onClick={() => onPick(suggestion)}
-          className="group rounded-2xl border border-border bg-card/60 px-4 py-3 text-left text-[14px] text-foreground/90 transition-colors hover:border-primary/40 hover:bg-card"
-        >
-          {suggestion}
-        </button>
-      ))}
+    <div className="flex flex-col items-center px-1 pb-2 pt-6 text-center">
+      <div className="liquid-nav mb-4 flex h-14 w-14 items-center justify-center rounded-2xl">
+        <Spark className="h-7 w-7" gradientId="empty-spark" />
+      </div>
+      <h2 className="text-[19px] font-semibold">Ask anything about DAU</h2>
+      <p className="mt-1.5 max-w-sm text-[13.5px] leading-relaxed text-muted-foreground">
+        Clubs, faculty, curriculum, timetables, placements, alumni and campus life — from the institute's own
+        data, in a few seconds.
+      </p>
+      <div className="mt-5 flex w-full flex-col gap-2">
+        {suggestions.slice(0, 4).map((suggestion) => (
+          <button
+            key={suggestion}
+            type="button"
+            onClick={() => onPick(suggestion)}
+            className="rounded-2xl border border-border bg-card px-3.5 py-2.5 text-left text-[13.5px] text-foreground/90 transition-colors hover:border-primary/40 active:scale-[0.99]"
+          >
+            {suggestion}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
 
-function Answer({ message, onRetry }: { message: ChatMessage; onRetry: () => void }) {
+function Bubble({ message, onRetry }: { message: ChatMessage; onRetry: (m: ChatMessage) => void }) {
+  const isUser = message.role === "USER";
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -220,47 +322,75 @@ function Answer({ message, onRetry }: { message: ChatMessage; onRetry: () => voi
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
-      /* clipboard blocked; nothing useful to say about it */
+      /* clipboard unavailable */
     }
   };
 
-  return (
-    <div className="animate-fade-up">
-      <div className="flex gap-3">
-        <div className="mt-0.5 h-6 w-6 shrink-0 text-primary">
-          <Spark className={message.streaming ? "animate-blink" : undefined} />
-        </div>
-        <div className="min-w-0 flex-1">
-          {message.error ? (
-            <div className="rounded-2xl border border-border bg-card px-4 py-3 text-[14px]">
-              <p className="text-foreground/90">{message.error}</p>
-              <button
-                type="button"
-                onClick={onRetry}
-                className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-medium text-primary hover:opacity-80"
-              >
-                <RotateCcw className="h-3.5 w-3.5" /> Try again
-              </button>
-            </div>
-          ) : message.content ? (
-            <Markdown content={message.content} />
-          ) : (
-            <p className="py-1 text-[14px] text-muted-foreground">
-              {message.status ?? "Thinking…"}
-            </p>
-          )}
-
-          {!message.streaming && !message.error && message.content && (
-            <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
-              <button type="button" onClick={copy} className="inline-flex items-center gap-1 hover:text-foreground">
-                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                {copied ? "Copied" : "Copy"}
-              </button>
-              {message.seconds !== undefined && <span>answered in {message.seconds}s</span>}
-            </div>
+  // A failed turn is its own bubble with a retry, not a stray label under an empty one.
+  if (!isUser && message.error && !message.content) {
+    return (
+      <div className="flex justify-start">
+        <div className="flex max-w-[88%] flex-col gap-2 rounded-2xl rounded-tl-sm border border-red-500/30 bg-red-500/10 px-3.5 py-2.5 text-sm leading-relaxed">
+          <span>{message.error}</span>
+          {message.question && (
+            <button
+              type="button"
+              onClick={() => onRetry(message)}
+              className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Try again
+            </button>
           )}
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
+      {/* min-w-0 lets a wide table scroll inside the bubble instead of stretching past the screen */}
+      <div className={cn("group flex min-w-0 flex-col gap-1", isUser ? "max-w-[88%] items-end" : "max-w-full items-start")}>
+        <div
+          className={cn(
+            "min-w-0 max-w-full rounded-2xl px-3.5 py-2 text-sm leading-relaxed",
+            isUser
+              ? "whitespace-pre-wrap rounded-tr-sm bg-primary text-primary-foreground"
+              : "rounded-tl-sm border border-border bg-card text-foreground"
+          )}
+        >
+          {isUser ? (
+            message.content
+          ) : message.content ? (
+            <Markdown content={message.content} />
+          ) : (
+            <Thinking status={message.status} />
+          )}
+        </div>
+        {!isUser && !message.streaming && message.content && (
+          <button
+            type="button"
+            onClick={copy}
+            className="inline-flex items-center gap-1 px-1 text-[11px] text-muted-foreground transition-opacity hover:text-foreground"
+          >
+            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        )}
+      </div>
     </div>
+  );
+}
+
+function Thinking({ status }: { status?: string }) {
+  return (
+    <span className="inline-flex items-center gap-2 text-muted-foreground">
+      <span className="inline-flex items-end gap-0.5">
+        <span className="typing-dot inline-block h-1.5 w-1.5 rounded-full bg-current" />
+        <span className="typing-dot inline-block h-1.5 w-1.5 rounded-full bg-current" />
+        <span className="typing-dot inline-block h-1.5 w-1.5 rounded-full bg-current" />
+      </span>
+      {status ?? "Thinking…"}
+    </span>
   );
 }

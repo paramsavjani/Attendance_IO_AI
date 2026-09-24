@@ -29,15 +29,27 @@ export type AgentStreamEvent =
   | (EventBase & { type: "ERROR"; error: string });
 
 export interface DemoInfo {
+  signedIn: boolean;
+  name: string | null;
+  /** Questions this visitor has left today. Asking for it does not use one up. */
+  remaining: number;
+  limit: number;
+  signedInLimit: number;
   askedToday: number;
   dailyLimit: number;
-  perVisitorLimit: number;
+  /** Null when sign-in is not configured; the page then stays anonymous-only. */
+  googleClientId: string | null;
   suggestions: string[];
 }
 
-export async function fetchDemoInfo(signal?: AbortSignal): Promise<DemoInfo | null> {
+/** The visitor's Google ID token, when they have signed in. Verified on the server. */
+function authHeaders(token?: string | null): HeadersInit {
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export async function fetchDemoInfo(token?: string | null, signal?: AbortSignal): Promise<DemoInfo | null> {
   try {
-    const response = await fetch(`${BASE}/info`, { signal });
+    const response = await fetch(`${BASE}/info`, { signal, headers: authHeaders(token) });
     if (!response.ok) return null;
     return (await response.json()) as DemoInfo;
   } catch {
@@ -63,18 +75,24 @@ export interface StreamOptions {
   message: string;
   /** Omit on the first question; the META event carries the id to send next time. */
   conversationId?: string | null;
+  /** Google ID token, when signed in — it buys a larger daily allowance. */
+  token?: string | null;
   onEvent: (event: AgentStreamEvent) => void;
   signal?: AbortSignal;
 }
 
+/** Thrown when the visitor is out of free questions and signing in would give them more. */
+export class SignInRequiredError extends Error {}
+
 /** Opens the stream and resolves once the server has sent DONE/ERROR or closed the connection. */
-export async function streamDemoChat({ message, conversationId, onEvent, signal }: StreamOptions): Promise<void> {
+export async function streamDemoChat({ message, conversationId, token, onEvent, signal }: StreamOptions): Promise<void> {
   const response = await fetch(`${BASE}/chat/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       // JSON too, so a refusal before the stream starts (the daily cap, HTTP 429) can carry a message.
       Accept: "text/event-stream, application/json",
+      ...authHeaders(token),
     },
     body: JSON.stringify({ message, conversationId: conversationId ?? undefined }),
     signal,
@@ -88,6 +106,8 @@ export async function streamDemoChat({ message, conversationId, onEvent, signal 
     } catch {
       /* non-JSON error body */
     }
+    // 429 without a token means the free questions are used up, not that the day is over.
+    if (response.status === 429 && !token) throw new SignInRequiredError(detail);
     throw new Error(detail);
   }
 

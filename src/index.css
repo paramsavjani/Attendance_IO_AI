@@ -44,6 +44,117 @@
   }
 }
 
+
+/* ── Lifted from the Attendance IO app so the demo and the app read as one product ──────────── */
+
+/* Composer: a Gemini-style rounded box whose border is a rotating conic gradient. Three states —
+   quiet when idle, faintly coloured while typing, full strength while the assistant is thinking. */
+@property --gemini-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.gemini-border {
+  position: relative;
+  border-radius: 1.25rem;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--gemini-angle),
+    #4285f4 0deg,
+    #a142f4 72deg,
+    #ea4335 144deg,
+    #fbbc05 216deg,
+    #34a853 288deg,
+    #4285f4 360deg
+  );
+}
+
+.gemini-border > .gemini-inner {
+  border-radius: calc(1.25rem - 1.5px);
+  background: hsl(var(--background));
+}
+
+.gemini-border.is-idle {
+  background: linear-gradient(135deg, hsl(0 0% 24%), hsl(0 0% 16%) 45%, hsl(262 40% 30%));
+}
+
+.gemini-border.is-focused {
+  background:
+    conic-gradient(
+      from var(--gemini-angle),
+      rgb(66 133 244 / 0.45) 0deg,
+      rgb(161 66 244 / 0.45) 72deg,
+      rgb(234 67 53 / 0.45) 144deg,
+      rgb(251 188 5 / 0.45) 216deg,
+      rgb(52 168 83 / 0.45) 288deg,
+      rgb(66 133 244 / 0.45) 360deg
+    ),
+    hsl(0 0% 18%);
+  animation: gemini-spin 8s linear infinite;
+}
+
+.gemini-border.is-thinking {
+  animation: gemini-spin 1.8s linear infinite;
+}
+
+.gemini-border.is-thinking::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 1.6rem;
+  background: inherit;
+  filter: blur(14px);
+  opacity: 0.35;
+  z-index: -1;
+}
+
+@keyframes gemini-spin {
+  to {
+    --gemini-angle: 360deg;
+  }
+}
+
+/* Frosted circle behind the spark, and anything else that wants the app's glass. */
+.liquid-nav {
+  background: linear-gradient(
+    135deg,
+    hsl(0 0% 12% / 0.85) 0%,
+    hsl(0 0% 8% / 0.9) 50%,
+    hsl(0 0% 10% / 0.85) 100%
+  );
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid hsl(0 0% 100% / 0.08);
+  box-shadow:
+    0 8px 32px hsl(0 0% 0% / 0.4),
+    0 0 0 1px hsl(0 0% 100% / 0.05) inset,
+    0 1px 0 hsl(0 0% 100% / 0.1) inset;
+}
+
+/* Typing indicator */
+.typing-dot {
+  animation: typing-bounce 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes typing-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
 @layer utilities {
   .safe-bottom {
     padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);

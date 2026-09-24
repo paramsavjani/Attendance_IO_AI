@@ -10,6 +10,22 @@ placements, campus services, alumni), strips phone numbers from every result, an
 questions one visitor gets per day. None of that is asked of the model: it is enforced in
 `PublicAgentToolPolicy` on the server, where a visitor cannot argue with it.
 
+## Who can ask
+
+Three questions with no account at all, then the page asks for a Google account and allows fifteen a
+day. The free questions exist because a page you have to sign into before seeing anything work is a
+page most people close; the wall exists because every answer costs real money and a link on LinkedIn
+reaches scripts as well as people. A day's ceiling across everyone caps the bill whatever happens.
+
+Sign-in is Google Identity Services: the browser gets a signed ID token, sends it as a bearer
+credential, and the backend verifies its signature, expiry, issuer and audience before it counts for
+anything. No redirect, no cookie, nothing shared with the app's own login on another domain.
+
+It needs a Google OAuth **client id**, set on the server as `AGENT_PUBLIC_GOOGLE_CLIENT_ID` — the page
+reads it from `/info`, so it is configured in one place. Whichever client id is used, this site's
+origin has to be listed under *Authorized JavaScript origins* in the Google Cloud console. Leave the
+variable unset and the page simply stays anonymous-only.
+
 ## Running it
 
 ```bash
