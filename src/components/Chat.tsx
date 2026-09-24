@@ -277,11 +277,6 @@ export function Chat({
               }
               rows={1}
               enterKeyHint="send"
-              // The placeholder goes when the field takes focus. Empty and focused, the caret sits
-              // at position 0 — exactly where the placeholder's first letter is drawn, and "A" has
-              // no left side bearing in this face — so the cursor paints through its stroke and the
-              // letter reads as clipped. Padding can't separate them: the caret moves with the text.
-              // Stays at 16px on phones; anything smaller and iOS zooms the page on focus.
               className="composer-input max-h-52 min-h-[44px] w-full resize-none bg-transparent text-[16px] leading-[1.6] text-foreground caret-primary outline-none placeholder:text-muted-foreground focus:placeholder:text-transparent disabled:opacity-60 sm:min-h-[52px]"
             />
             <div className="flex items-end justify-between gap-3">
