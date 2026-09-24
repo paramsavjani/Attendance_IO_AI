@@ -33,19 +33,19 @@ export function SignInCard({
   }, [clientId, onSignedIn]);
 
   return (
-    <div className="hero-in mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border border-border bg-card px-5 py-6 text-center">
-      <Logo className="mb-3 h-14 w-14 drop-shadow-[0_3px_10px_rgba(0,0,0,0.5)]" />
-      <h2 className="text-[16px] font-semibold">Sign in again to keep asking</h2>
+    <div className="hero-in mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border border-border bg-surface px-6 py-7 text-center">
+      <Logo className="mb-4 h-14 w-14 drop-shadow-[0_3px_10px_rgba(0,0,0,0.5)]" />
+      <h2 className="font-display text-[19px] font-semibold tracking-tight">Sign in again to keep asking</h2>
 
       {clientId ? (
-        <div ref={slot} className="mt-4 flex min-h-[44px] items-center justify-center" />
+        <div ref={slot} className="mt-5 flex min-h-[44px] items-center justify-center" />
       ) : (
-        <p className="mt-4 text-[13px] text-muted-foreground">
+        <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">
           Sign-in isn't configured yet. Come back tomorrow for a fresh set of questions.
         </p>
       )}
       {failed && (
-        <p className="mt-3 text-[12px] text-muted-foreground">
+        <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
           Google's sign-in couldn't load — an ad blocker or a strict privacy setting usually causes that.
         </p>
       )}

@@ -1,32 +1,33 @@
-@import "@fontsource/outfit/400.css";
 @import "@fontsource/outfit/500.css";
 @import "@fontsource/outfit/600.css";
 @import "@fontsource/outfit/700.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* The Attendance IO palette: near-black, one indigo accent, everything else grey. */
 @layer base {
   :root {
-    /* A touch of indigo mixed into the near-black, and cards/borders lifted a step further off the
-       background, so the page reads as a dark surface rather than a flat black slab. */
-    --background: 240 8% 6%;
-    --foreground: 0 0% 96%;
-    --card: 240 8% 11%;
-    --muted: 240 6% 17%;
-    --muted-foreground: 0 0% 63%;
+    /* A near-black with a real blue cast rather than a tinted grey, one indigo accent carried over
+       from the Attendance IO app, and surfaces raised far enough off the page to be seen at rest. */
+    --background: 240 10% 6%;
+    --foreground: 240 10% 97%;
+    --surface: 240 9% 12%;
+    --muted: 240 7% 18%;
+    --muted-foreground: 240 5% 64%;
     --primary: 234 89% 64%;
     --primary-foreground: 0 0% 100%;
-    --border: 240 6% 21%;
+    --border: 240 7% 20%;
   }
 
   * {
     @apply border-border;
   }
 
-  /* Visible keyboard focus everywhere — the hover states above don't reach a keyboard visitor. */
+  /* Visible keyboard focus everywhere — hover states don't reach a keyboard visitor. */
   :focus-visible {
     outline: 2px solid hsl(var(--primary));
     outline-offset: 2px;
@@ -34,30 +35,26 @@
   }
 
   html {
-    /* Keep the page from jumping when an answer grows past the fold. */
     scrollbar-gutter: stable;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: Outfit, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* A quiet scrollbar, dark like the rest. */
   @media (pointer: fine) {
     * {
       scrollbar-width: thin;
-      scrollbar-color: hsl(0 0% 24%) transparent;
+      scrollbar-color: hsl(240 5% 26%) transparent;
     }
   }
 }
 
-
-/* ── Lifted from the Attendance IO app so the demo and the app read as one product ──────────── */
-
-/* Composer: a Gemini-style rounded box whose border is a rotating conic gradient. Three states —
-   quiet when idle, faintly coloured while typing, full strength while the assistant is thinking. */
+/* ── The one chromatic event on the page ────────────────────────────────────────────────────────
+   The composer's ring, carried over from the Attendance IO app. Quiet at rest, tinted while the
+   visitor types, full strength while the assistant is working. Nothing else on the page is
+   allowed to be this colourful. */
 @property --gemini-angle {
   syntax: "<angle>";
   inherits: false;
@@ -66,7 +63,7 @@
 
 .gemini-border {
   position: relative;
-  border-radius: 1.25rem;
+  border-radius: 1.5rem;
   padding: 1.5px;
   background: conic-gradient(
     from var(--gemini-angle),
@@ -80,28 +77,26 @@
 }
 
 .gemini-border > .gemini-inner {
-  border-radius: calc(1.25rem - 1.5px);
-  /* Lifted off the page background (not matched to it) — the composer should read as a distinct
-     box at rest, not disappear until it's focused. */
-  background: hsl(var(--card));
+  border-radius: calc(1.5rem - 1.5px);
+  background: hsl(var(--surface));
 }
 
 .gemini-border.is-idle {
-  background: linear-gradient(135deg, hsl(0 0% 32%), hsl(0 0% 22%) 45%, hsl(262 45% 40%));
+  background: linear-gradient(135deg, hsl(240 6% 34%), hsl(240 6% 22%) 45%, hsl(262 45% 42%));
 }
 
 .gemini-border.is-focused {
   background:
     conic-gradient(
       from var(--gemini-angle),
-      rgb(66 133 244 / 0.45) 0deg,
-      rgb(161 66 244 / 0.45) 72deg,
-      rgb(234 67 53 / 0.45) 144deg,
-      rgb(251 188 5 / 0.45) 216deg,
-      rgb(52 168 83 / 0.45) 288deg,
-      rgb(66 133 244 / 0.45) 360deg
+      rgb(66 133 244 / 0.5) 0deg,
+      rgb(161 66 244 / 0.5) 72deg,
+      rgb(234 67 53 / 0.5) 144deg,
+      rgb(251 188 5 / 0.5) 216deg,
+      rgb(52 168 83 / 0.5) 288deg,
+      rgb(66 133 244 / 0.5) 360deg
     ),
-    hsl(0 0% 18%);
+    hsl(240 6% 22%);
   animation: gemini-spin 8s linear infinite;
 }
 
@@ -113,9 +108,9 @@
   content: "";
   position: absolute;
   inset: -6px;
-  border-radius: 1.6rem;
+  border-radius: 1.9rem;
   background: inherit;
-  filter: blur(14px);
+  filter: blur(16px);
   opacity: 0.35;
   z-index: -1;
 }
@@ -126,24 +121,7 @@
   }
 }
 
-/* Frosted circle behind the spark, and anything else that wants the app's glass. */
-.liquid-nav {
-  background: linear-gradient(
-    135deg,
-    hsl(0 0% 12% / 0.85) 0%,
-    hsl(0 0% 8% / 0.9) 50%,
-    hsl(0 0% 10% / 0.85) 100%
-  );
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid hsl(0 0% 100% / 0.08);
-  box-shadow:
-    0 8px 32px hsl(0 0% 0% / 0.4),
-    0 0 0 1px hsl(0 0% 100% / 0.05) inset,
-    0 1px 0 hsl(0 0% 100% / 0.1) inset;
-}
-
-/* Typing indicator */
+/* Typing indicator, shown while an answer has been asked for but nothing has streamed yet. */
 .typing-dot {
   animation: typing-bounce 1.2s ease-in-out infinite;
 }
@@ -166,13 +144,12 @@
   }
 }
 
-/* The one deliberate entrance moment on the page: the hero (or the sign-in card that replaces it)
-   settles in on arrival instead of appearing instantly. Nothing else on the page animates on its
-   own — hover and focus states aside — so this stays a single, legible beat. */
+/* The single deliberate entrance on the page: the hero, or the sign-in card that replaces it,
+   settles in on arrival. Nothing else animates unprompted. */
 @keyframes hero-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -180,13 +157,11 @@
   }
 }
 .hero-in {
-  animation: hero-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: hero-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-in {
-    animation: none;
-  }
+  .hero-in,
   .gemini-border.is-focused,
   .gemini-border.is-thinking,
   .gemini-border.is-thinking::before,
@@ -196,19 +171,14 @@
 }
 
 @layer utilities {
-  .safe-bottom {
-    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
-  }
-
-  /* The soft indigo glow behind the hero mark, two quiet accents at the far edges so a wide desktop
-     window doesn't read as a mobile column stranded on flat black, and a faint dot grid so the
-     black itself has some texture instead of reading as an empty slab. */
-  .hero-glow {
+  /* Ambient depth so a wide desktop window isn't a column stranded on flat black: one indigo glow
+     behind the hero, two quiet accents at the far edges, and a faint dot grid for texture. */
+  .page-field {
     background:
       radial-gradient(38% 55% at 50% 0%, hsl(234 89% 64% / 0.18) 0%, transparent 70%),
-      radial-gradient(30% 45% at 0% 100%, hsl(234 89% 64% / 0.09) 0%, transparent 70%),
-      radial-gradient(30% 45% at 100% 15%, hsl(262 60% 55% / 0.09) 0%, transparent 70%),
-      radial-gradient(hsl(0 0% 100% / 0.05) 1px, transparent 1px) 0 0/24px 24px;
+      radial-gradient(30% 45% at 0% 100%, hsl(234 89% 64% / 0.08) 0%, transparent 70%),
+      radial-gradient(30% 45% at 100% 15%, hsl(262 60% 55% / 0.08) 0%, transparent 70%),
+      radial-gradient(hsl(0 0% 100% / 0.045) 1px, transparent 1px) 0 0/26px 26px;
     background-color: hsl(var(--background));
   }
 }

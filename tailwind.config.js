@@ -1,23 +1,26 @@
-/** Same tokens as the Attendance IO app, so the demo looks like the product it demonstrates. */
+/**
+ * Two families, clearly distinct. Outfit is the Attendance IO app's own geometric face and carries
+ * the brand into the chrome — wordmark, hero, buttons. IBM Plex Sans carries everything the
+ * assistant actually says: it was drawn for dense technical and institutional text, handles
+ * tables of companies and placement figures without going mushy, and reads cleanly at 16px.
+ */
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      fontFamily: { sans: ["Outfit", "system-ui", "sans-serif"] },
+      fontFamily: {
+        sans: ["IBM Plex Sans", "system-ui", "sans-serif"],
+        display: ["Outfit", "system-ui", "sans-serif"],
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        card: "hsl(var(--card))",
+        surface: "hsl(var(--surface))",
         muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" },
         primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))" },
         border: "hsl(var(--border))",
       },
-      maxWidth: { readable: "48rem" },
-      keyframes: {
-        "fade-up": { from: { opacity: "0", transform: "translateY(6px)" }, to: { opacity: "1", transform: "none" } },
-        blink: { "0%, 100%": { opacity: "1" }, "50%": { opacity: "0.2" } },
-      },
-      animation: { "fade-up": "fade-up 0.25s ease-out both", blink: "blink 1.1s ease-in-out infinite" },
+      maxWidth: { answer: "48rem" },
     },
   },
   plugins: [],

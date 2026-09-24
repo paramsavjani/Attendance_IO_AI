@@ -4,12 +4,9 @@ import { Chat } from "./components/Chat";
 import { Logo } from "./components/Logo";
 import { fetchDemoInfo, type DemoInfo } from "./lib/agent";
 import { nudgeGoogleOneTap, signOut, storedCredential, type GoogleUser } from "./lib/auth";
-import { cn } from "./lib/utils";
 
 const APP_URL = "https://attendanceio.paramsavjani.in";
 const REPO_URL = "https://github.com/paramsavjani/Attendance_IO_Frontend";
-/** The centred column's width, shared with Chat.tsx so the header lines up with the messages below it. */
-export const CONTENT_WIDTH = "w-full max-w-lg sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl";
 
 export default function App() {
   const [info, setInfo] = useState<DemoInfo | null>(null);
@@ -57,18 +54,18 @@ export default function App() {
 
   return (
     <div
-      className="hero-glow fixed inset-x-0 top-0 flex flex-col"
+      className="page-field fixed inset-x-0 top-0 flex flex-col"
       // Follows the visual viewport, so the composer sits right above the keyboard when it opens.
       style={{ height: viewportHeight ? `${viewportHeight}px` : "100dvh" }}
     >
       <header
-        className="flex shrink-0 justify-center border-b border-border bg-background/95 px-3 pb-2.5 backdrop-blur sm:px-6"
+        className="flex shrink-0 justify-center border-b border-border/70 bg-background/80 px-5 pb-3 backdrop-blur-xl sm:px-8"
         style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
-        <div className={cn(CONTENT_WIDTH, "flex items-center gap-2")}>
+        <div className="flex w-full max-w-answer items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
             <Logo className="h-8 w-8 shrink-0 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]" />
-            <h1 className="truncate text-[15px] font-semibold leading-tight">Attendance IO AI</h1>
+            <h1 className="truncate font-display text-[16px] font-semibold tracking-tight">Attendance IO AI</h1>
           </div>
 
           <button
@@ -78,7 +75,7 @@ export default function App() {
             title="New chat"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <Plus className="h-[18px] w-[18px]" />
+            <Plus className="h-[19px] w-[19px]" />
           </button>
           <a
             href={REPO_URL}
@@ -96,7 +93,7 @@ export default function App() {
               type="button"
               onClick={leave}
               title={user.name ? `Signed in as ${user.name} — sign out` : "Sign out"}
-              className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border pl-1 pr-2.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+              className="ml-1 flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border pl-1 pr-2.5 text-[12.5px] text-muted-foreground transition-colors hover:text-foreground"
             >
               {user.picture ? (
                 <img src={user.picture} alt="" className="h-7 w-7 rounded-full" referrerPolicy="no-referrer" />
@@ -112,7 +109,7 @@ export default function App() {
               href={APP_URL}
               target="_blank"
               rel="noreferrer noopener"
-              className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full bg-primary px-3.5 text-[13px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              className="ml-1 inline-flex h-9 shrink-0 items-center gap-1 rounded-full bg-primary px-4 text-[13.5px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               <span className="hidden sm:inline">Open the app</span>
               <span className="sm:hidden">App</span>
