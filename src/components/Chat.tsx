@@ -276,10 +276,6 @@ export function Chat({
             </div>
           </div>
         </div>
-        <p className="mx-auto mt-2 max-w-lg text-center text-[11px] leading-snug text-muted-foreground">
-          Institute information only — no student's attendance is reachable here. The assistant can be wrong;
-          double-check anything that matters.
-        </p>
       </div>
     </>
   );
