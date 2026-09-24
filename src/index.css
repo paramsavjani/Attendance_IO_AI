@@ -1,0 +1,56 @@
+@import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/500.css";
+@import "@fontsource/outfit/600.css";
+@import "@fontsource/outfit/700.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* The Attendance IO palette: near-black, one indigo accent, everything else grey. */
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 8%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    --primary: 234 89% 64%;
+    --primary-foreground: 0 0% 100%;
+    --border: 0 0% 16%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    /* Keep the page from jumping when an answer grows past the fold. */
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: Outfit, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* A quiet scrollbar, dark like the rest. */
+  @media (pointer: fine) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: hsl(0 0% 24%) transparent;
+    }
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
+  }
+
+  /* The soft indigo glow behind the hero mark. */
+  .hero-glow {
+    background: radial-gradient(60% 60% at 50% 0%, hsl(234 89% 64% / 0.18) 0%, transparent 70%);
+  }
+}
