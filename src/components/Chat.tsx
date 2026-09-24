@@ -276,6 +276,11 @@ export function Chat({
               }
               rows={1}
               enterKeyHint="send"
+              // No red squiggles, and no phone autocorrect: almost every real question here carries
+              // a name the dictionary doesn't have — DAU, DA-IICT, B.Tech, a club, a company.
+              spellCheck={false}
+              autoCorrect="off"
+              autoComplete="off"
               className="max-h-52 min-h-[52px] w-full resize-none bg-transparent text-[16px] leading-[1.6] text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-60"
             />
             <div className="flex items-end justify-between gap-3">
