@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Spark } from "./Spark";
+import { Logo } from "./Logo";
 import { initGoogleSignIn, type GoogleUser } from "@/lib/auth";
 
 /**
@@ -40,8 +40,8 @@ export function SignInCard({
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border border-border bg-card px-5 py-6 text-center">
-      <div className="liquid-nav mb-3 flex h-11 w-11 items-center justify-center rounded-xl">
-        <Spark className="h-5 w-5" gradientId="signin-spark" />
+      <div className="liquid-nav mb-3 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl">
+        <Logo className="h-full w-full object-cover" />
       </div>
       <h2 className="text-[16px] font-semibold">Sign in to keep asking</h2>
       {question && (

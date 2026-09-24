@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, Check, Copy, RotateCcw, Square } from "lucide-react";
 import { Markdown } from "./Markdown";
-import { Spark } from "./Spark";
+import { Logo } from "./Logo";
 import { SignInCard } from "./SignInCard";
 import { STATUS_TEXT, SignInRequiredError, streamDemoChat, type AgentStreamEvent, type DemoInfo } from "@/lib/agent";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,17 @@ interface ChatMessage {
 }
 
 const newId = () => Math.random().toString(36).slice(2);
+
+/**
+ * Shown when the server cannot be reached for its own list — an empty page with nothing to try is
+ * the one state this page must never be in.
+ */
+const FALLBACK_SUGGESTIONS = [
+  "Where do DAU graduates work?",
+  "What were DAU's placement figures last year?",
+  "What does the B.Tech programme cover?",
+  "Which companies recruit from DAU?",
+];
 
 export function Chat({
   info,
@@ -183,7 +194,10 @@ export function Chat({
         >
           <div className="mx-auto flex w-full max-w-lg flex-col gap-3">
             {messages.length === 0 && !blocked ? (
-              <EmptyState suggestions={info?.suggestions ?? []} onPick={(s) => void send(s)} />
+              <EmptyState
+                suggestions={info?.suggestions?.length ? info.suggestions : FALLBACK_SUGGESTIONS}
+                onPick={(s) => void send(s)}
+              />
             ) : (
               messages.map((m) => <Bubble key={m.id} message={m} onRetry={retry} />)
             )}
@@ -284,13 +298,15 @@ export function Chat({
 function EmptyState({ suggestions, onPick }: { suggestions: string[]; onPick: (s: string) => void }) {
   return (
     <div className="flex flex-col items-center px-1 pb-2 pt-6 text-center">
-      <div className="liquid-nav mb-4 flex h-14 w-14 items-center justify-center rounded-2xl">
-        <Spark className="h-7 w-7" gradientId="empty-spark" />
+      <div className="liquid-nav mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl">
+        <Logo className="h-full w-full object-cover" />
       </div>
       <h2 className="text-[19px] font-semibold">Ask anything about DAU</h2>
-      <p className="mt-1.5 max-w-sm text-[13.5px] leading-relaxed text-muted-foreground">
-        Clubs, faculty, curriculum, timetables, placements, alumni and campus life — from the institute's own
-        data, in a few seconds.
+      <p className="mt-2 max-w-sm text-[13.5px] leading-relaxed text-muted-foreground">
+        The assistant built into <span className="text-foreground">Attendance IO</span>, the app DA-IICT
+        students use every day. It has read every notice, handbook, timetable and placement report the
+        institute publishes — programmes and curriculum, faculty, clubs, placements, alumni and campus
+        life — and answers in a few seconds. Ask it like you'd ask a senior.
       </p>
       <div className="mt-5 flex w-full flex-col gap-2">
         {suggestions.slice(0, 4).map((suggestion) => (

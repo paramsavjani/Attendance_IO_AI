@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Github, LogOut, RotateCcw } from "lucide-react";
 import { Chat } from "./components/Chat";
-import { Spark } from "./components/Spark";
+import { Logo } from "./components/Logo";
 import { fetchDemoInfo, type DemoInfo } from "./lib/agent";
 import { signOut, storedCredential, type GoogleUser } from "./lib/auth";
 
@@ -53,8 +53,8 @@ export default function App() {
         style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
-          <div className="liquid-nav flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
-            <Spark className="h-[18px] w-[18px]" gradientId="header-spark" />
+          <div className="liquid-nav flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full">
+            <Logo className="h-full w-full object-cover" />
           </div>
           <div className="min-w-0">
             <h1 className="truncate text-[15px] font-semibold leading-tight">Attendance IO AI</h1>
