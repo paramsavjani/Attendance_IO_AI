@@ -283,7 +283,7 @@ export function Chat({
               // no left side bearing in this face — so the cursor paints through its stroke and the
               // letter reads as clipped. Padding can't separate them: the caret moves with the text.
               // Stays at 16px on phones; anything smaller and iOS zooms the page on focus.
-              className="max-h-52 min-h-[44px] w-full resize-none bg-transparent text-[16px] leading-[1.6] text-foreground caret-primary outline-none placeholder:text-muted-foreground focus:placeholder:text-transparent disabled:opacity-60 sm:min-h-[52px]"
+              className="composer-input max-h-52 min-h-[44px] w-full resize-none bg-transparent text-[16px] leading-[1.6] text-foreground caret-primary outline-none placeholder:text-muted-foreground focus:placeholder:text-transparent disabled:opacity-60 sm:min-h-[52px]"
             />
             <div className="flex items-end justify-between gap-3">
               <span className="pb-1 text-[12px] text-muted-foreground sm:text-[12.5px]">{remaining}</span>

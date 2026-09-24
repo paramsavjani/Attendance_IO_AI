@@ -121,6 +121,16 @@
   }
 }
 
+/* The composer scrolls once it hits its ceiling, but without a scrollbar: a grey bar drawn inside
+   the rounded box reads as a stray inner border, and it steals width from the text as it appears.
+   Wheel, trackpad and caret scrolling all still work. */
+.composer-input {
+  scrollbar-width: none;
+}
+.composer-input::-webkit-scrollbar {
+  display: none;
+}
+
 /* Typing indicator, shown while an answer has been asked for but nothing has streamed yet. */
 .typing-dot {
   animation: typing-bounce 1.2s ease-in-out infinite;
