@@ -172,6 +172,16 @@ export function Chat({
     void send(message.question);
   };
 
+  // A visitor can sign in at the wall or from the header, so the held-back question is resumed off
+  // the token itself rather than off whichever button they happened to use.
+  useEffect(() => {
+    if (!token || !pending.current) return;
+    const question = pending.current;
+    pending.current = null;
+    setNeedsSignIn(false);
+    void send(question);
+  }, [token, send]);
+
   const stop = () => abort.current?.abort();
 
   useEffect(() => {
@@ -222,18 +232,7 @@ export function Chat({
             ) : (
               messages.map((m) => <Turn key={m.id} message={m} onRetry={retry} />)
             )}
-            {blocked && (
-              <SignInCard
-                clientId={info?.googleClientId ?? null}
-                onSignedIn={(user) => {
-                  onSignedIn(user);
-                  setNeedsSignIn(false);
-                  const question = pending.current;
-                  pending.current = null;
-                  if (question) void send(question);
-                }}
-              />
-            )}
+            {blocked && <SignInCard clientId={info?.googleClientId ?? null} onSignedIn={onSignedIn} />}
           </div>
         </div>
 

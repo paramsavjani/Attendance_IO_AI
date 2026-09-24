@@ -15,6 +15,7 @@ const SCRIPT_URL = "https://accounts.google.com/gsi/client";
 
 export interface GoogleUser {
   name?: string;
+  email?: string;
   picture?: string;
   expiresAt: number;
 }
@@ -52,11 +53,18 @@ function describe(token: string): StoredCredential | null {
     const [, payload] = token.split(".");
     const claims = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))) as {
       name?: string;
+      email?: string;
       picture?: string;
       exp?: number;
     };
     if (!claims.exp) return null;
-    return { token, name: claims.name, picture: claims.picture, expiresAt: claims.exp * 1000 };
+    return {
+      token,
+      name: claims.name,
+      email: claims.email,
+      picture: claims.picture,
+      expiresAt: claims.exp * 1000,
+    };
   } catch {
     return null;
   }

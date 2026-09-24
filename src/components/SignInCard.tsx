@@ -1,11 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import { Logo } from "./Logo";
-import { initGoogleSignIn, type GoogleUser } from "@/lib/auth";
+import { GoogleButton } from "./GoogleButton";
+import type { GoogleUser } from "@/lib/auth";
 
-/**
- * Shown when a visitor has used their free questions. Google's own button, because only Google's
- * button may carry Google's name.
- */
+/** Shown in the thread once a visitor has used their free questions. */
 export function SignInCard({
   clientId,
   onSignedIn,
@@ -13,42 +10,15 @@ export function SignInCard({
   clientId: string | null;
   onSignedIn: (user: GoogleUser) => void;
 }) {
-  const slot = useRef<HTMLDivElement>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    if (!clientId) return;
-    let cancelled = false;
-    void initGoogleSignIn(clientId, onSignedIn).then((handles) => {
-      if (cancelled) return;
-      if (!handles || !slot.current) {
-        setFailed(true);
-        return;
-      }
-      handles.renderButton(slot.current);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [clientId, onSignedIn]);
-
   return (
     <div className="hero-in mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border border-border bg-surface px-6 py-7 text-center">
       <Logo className="mb-4 h-14 w-14 drop-shadow-[0_3px_10px_rgba(0,0,0,0.5)]" />
-      <h2 className="font-display text-[19px] font-semibold tracking-tight">Sign in again to keep asking</h2>
-
-      {clientId ? (
-        <div ref={slot} className="mt-5 flex min-h-[44px] items-center justify-center" />
-      ) : (
-        <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">
-          Sign-in isn't configured yet. Come back tomorrow for a fresh set of questions.
-        </p>
-      )}
-      {failed && (
-        <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-          Google's sign-in couldn't load — an ad blocker or a strict privacy setting usually causes that.
-        </p>
-      )}
+      <h2 className="mb-5 font-display text-[19px] font-semibold tracking-tight">Sign in again to keep asking</h2>
+      <GoogleButton
+        clientId={clientId}
+        onSignedIn={onSignedIn}
+        unavailableText="Sign-in isn't configured yet. Come back tomorrow for a fresh set of questions."
+      />
     </div>
   );
 }

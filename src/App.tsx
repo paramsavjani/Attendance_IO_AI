@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Github, LogOut, Plus } from "lucide-react";
+import { Github, Plus } from "lucide-react";
 import { Chat } from "./components/Chat";
 import { Logo } from "./components/Logo";
+import { AccountMenu } from "./components/AccountMenu";
 import { fetchDemoInfo, type DemoInfo } from "./lib/agent";
 import { nudgeGoogleOneTap, signOut, storedCredential, type GoogleUser } from "./lib/auth";
+import { cn } from "./lib/utils";
 
 const APP_URL = "https://attendanceio.paramsavjani.in";
 const REPO_URL = "https://github.com/paramsavjani/Attendance_IO_Frontend";
@@ -90,39 +92,33 @@ export default function App() {
             <Github className="h-[17px] w-[17px]" />
           </a>
 
-          {user ? (
-            <button
-              type="button"
-              onClick={leave}
-              title={user.name ? `Signed in as ${user.name} — sign out` : "Sign out"}
-              className="ml-1 flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border pl-1 pr-2.5 text-[12.5px] text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {user.picture ? (
-                <img src={user.picture} alt="" className="h-7 w-7 rounded-full" referrerPolicy="no-referrer" />
-              ) : (
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-muted text-[11px] text-foreground">
-                  {(user.name ?? "?").slice(0, 1)}
-                </span>
-              )}
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
-          ) : (
-            // The app's own icon rides inside the button, on a white disc so the colour mark reads
-            // against the indigo: it names the destination better than an arrow glyph would.
-            <a
-              href={APP_URL}
-              target="_blank"
-              rel="noreferrer noopener"
-              title="Open Attendance IO"
-              className="ml-1 inline-flex h-9 shrink-0 items-center gap-2 rounded-full bg-primary py-1 pl-1 pr-3 text-[13.5px] font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:pr-4"
-            >
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-white">
-                <Logo className="h-[18px] w-[18px]" />
-              </span>
-              <span className="hidden sm:inline">Open Attendance IO</span>
-              <span className="sm:hidden">Open</span>
-            </a>
-          )}
+          {/* The app's own icon rides inside the button, on a white disc so the colour mark reads
+              against the indigo. Once someone is signed in the label drops away and it keeps only
+              the icon, leaving the room in the bar to their account. */}
+          <a
+            href={APP_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            title="Open Attendance IO"
+            className={cn(
+              "inline-flex h-9 shrink-0 items-center rounded-full bg-primary p-1 text-[13.5px] font-medium text-primary-foreground transition-opacity hover:opacity-90",
+              !user && "gap-2 sm:pr-4"
+            )}
+          >
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-white">
+              <Logo className="h-[18px] w-[18px]" />
+            </span>
+            {!user && <span className="hidden sm:inline">Open Attendance IO</span>}
+          </a>
+
+          <AccountMenu
+            user={user}
+            clientId={info?.googleClientId ?? null}
+            remaining={info?.remaining}
+            dailyLimit={info?.signedInLimit}
+            onSignedIn={onSignedIn}
+            onSignOut={leave}
+          />
         </div>
       </header>
 
