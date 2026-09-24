@@ -206,12 +206,12 @@ export function Chat({
         <div
           ref={list}
           onScroll={onListScroll}
-          className="h-full overflow-y-auto overflow-x-hidden overscroll-contain px-5 py-6 sm:px-8"
+          className="h-full overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-5 sm:px-8 sm:py-6"
         >
           <div
             className={cn(
               "mx-auto flex min-h-full w-full max-w-answer flex-col",
-              messages.length === 0 ? "justify-center" : "gap-7"
+              messages.length === 0 ? "justify-center" : "gap-6 sm:gap-7"
             )}
           >
             {messages.length === 0 && !blocked ? (
@@ -254,13 +254,13 @@ export function Chat({
       </div>
 
       <div
-        className="shrink-0 px-5 pt-2 sm:px-8"
+        className="shrink-0 px-4 pt-2 sm:px-8"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}
       >
         <div className={cn("gemini-border mx-auto w-full max-w-answer", composerState)}>
           {/* Padding clears the 24px corner radius on every side — at anything less the first line
               of text sits inside the curve and the opening character reads as clipped. */}
-          <div className="gemini-inner flex flex-col gap-2 px-5 pb-3.5 pt-5 sm:px-6">
+          <div className="gemini-inner flex flex-col gap-2 px-4 pb-3 pt-4 sm:px-6 sm:pb-3.5 sm:pt-5">
             <textarea
               ref={textarea}
               value={input}
@@ -278,10 +278,15 @@ export function Chat({
               }
               rows={1}
               enterKeyHint="send"
-              className="max-h-52 min-h-[52px] w-full resize-none bg-transparent text-[16px] leading-[1.6] text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-60"
+              // The placeholder goes when the field takes focus. Empty and focused, the caret sits
+              // at position 0 — exactly where the placeholder's first letter is drawn, and "A" has
+              // no left side bearing in this face — so the cursor paints through its stroke and the
+              // letter reads as clipped. Padding can't separate them: the caret moves with the text.
+              // Stays at 16px on phones; anything smaller and iOS zooms the page on focus.
+              className="max-h-52 min-h-[44px] w-full resize-none bg-transparent text-[16px] leading-[1.6] text-foreground caret-primary outline-none placeholder:text-muted-foreground focus:placeholder:text-transparent disabled:opacity-60 sm:min-h-[52px]"
             />
             <div className="flex items-end justify-between gap-3">
-              <span className="pb-1 text-[12.5px] text-muted-foreground">{remaining}</span>
+              <span className="pb-1 text-[12px] text-muted-foreground sm:text-[12.5px]">{remaining}</span>
               {busy ? (
                 <button
                   type="button"
@@ -317,23 +322,23 @@ export function Chat({
 
 function EmptyState({ suggestions, onPick }: { suggestions: string[]; onPick: (s: string) => void }) {
   return (
-    <div className="hero-in flex flex-col items-center py-8 text-center">
-      <Logo className="h-14 w-14 drop-shadow-[0_6px_18px_rgba(0,0,0,0.55)] sm:h-16 sm:w-16" />
-      <h2 className="mt-5 font-display text-[28px] font-semibold leading-[1.15] tracking-tight sm:text-[34px]">
+    <div className="hero-in flex flex-col items-center py-6 text-center sm:py-8">
+      <Logo className="h-12 w-12 drop-shadow-[0_6px_18px_rgba(0,0,0,0.55)] sm:h-16 sm:w-16" />
+      <h2 className="mt-5 font-display text-[24px] font-semibold leading-[1.15] tracking-tight sm:text-[34px]">
         Ask anything about DAU
       </h2>
-      <p className="mt-3 max-w-[44ch] text-[15px] leading-relaxed text-muted-foreground">
+      <p className="mt-2.5 max-w-[44ch] text-[13.5px] leading-relaxed text-muted-foreground sm:mt-3 sm:text-[15px]">
         The assistant inside <span className="text-foreground">Attendance IO</span>. Ask about
         programmes, faculty, clubs, placements or alumni.
       </p>
 
-      <div className="mt-8 grid w-full gap-2.5 sm:grid-cols-2">
+      <div className="mt-6 grid w-full gap-2 sm:mt-8 sm:grid-cols-2 sm:gap-2.5">
         {suggestions.slice(0, 4).map((suggestion) => (
           <button
             key={suggestion}
             type="button"
             onClick={() => onPick(suggestion)}
-            className="rounded-xl border border-border bg-surface/60 px-4 py-3.5 text-left text-[14.5px] leading-snug text-foreground/90 transition-colors hover:border-primary/50 hover:bg-surface hover:text-foreground"
+            className="rounded-xl border border-border bg-surface/60 px-4 py-3 text-left text-[13.5px] leading-snug sm:py-3.5 sm:text-[14.5px] text-foreground/90 transition-colors hover:border-primary/50 hover:bg-surface hover:text-foreground"
           >
             {suggestion}
           </button>
@@ -364,7 +369,7 @@ function Turn({ message, onRetry }: { message: ChatMessage; onRetry: (m: ChatMes
   if (message.role === "USER") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-[15.5px] leading-relaxed text-primary-foreground">
+        <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-[14.5px] leading-relaxed text-primary-foreground sm:text-[15.5px]">
           {message.content}
         </div>
       </div>
@@ -374,7 +379,7 @@ function Turn({ message, onRetry }: { message: ChatMessage; onRetry: (m: ChatMes
   // A failed turn keeps its frame: the border is what tells you this isn't the answer.
   if (message.error && !message.content) {
     return (
-      <div className="flex w-full flex-col items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/[0.07] px-4 py-3.5 text-[15px] leading-relaxed">
+      <div className="flex w-full flex-col items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/[0.07] px-4 py-3.5 text-[14.5px] leading-relaxed sm:text-[15px]">
         <span>{message.error}</span>
         {message.question && (
           <button
@@ -409,7 +414,7 @@ function Turn({ message, onRetry }: { message: ChatMessage; onRetry: (m: ChatMes
 
 function Thinking({ status }: { status?: string }) {
   return (
-    <span className="inline-flex items-center gap-2.5 text-[15px] text-muted-foreground">
+    <span className="inline-flex items-center gap-2.5 text-[14.5px] text-muted-foreground sm:text-[15px]">
       <span className="inline-flex items-end gap-1">
         <span className="typing-dot inline-block h-1.5 w-1.5 rounded-full bg-current" />
         <span className="typing-dot inline-block h-1.5 w-1.5 rounded-full bg-current" />

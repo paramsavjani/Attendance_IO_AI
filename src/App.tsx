@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Github, LogOut, Plus } from "lucide-react";
+import { Github, LogOut, Plus } from "lucide-react";
 import { Chat } from "./components/Chat";
 import { Logo } from "./components/Logo";
 import { fetchDemoInfo, type DemoInfo } from "./lib/agent";
@@ -68,14 +68,16 @@ export default function App() {
             <h1 className="truncate font-display text-[16px] font-semibold tracking-tight">Attendance IO AI</h1>
           </div>
 
+          {/* Secondary controls: given a quiet outline so they read as buttons rather than glyphs
+              floating next to the one solid button in the bar. */}
           <button
             type="button"
             onClick={() => resetChat.current?.()}
             aria-label="New chat"
             title="New chat"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/80 bg-surface/50 text-muted-foreground transition-colors hover:border-border hover:bg-surface hover:text-foreground"
           >
-            <Plus className="h-[19px] w-[19px]" />
+            <Plus className="h-[18px] w-[18px]" />
           </button>
           <a
             href={REPO_URL}
@@ -83,9 +85,9 @@ export default function App() {
             rel="noreferrer noopener"
             aria-label="Source on GitHub"
             title="Source on GitHub"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/80 bg-surface/50 text-muted-foreground transition-colors hover:border-border hover:bg-surface hover:text-foreground"
           >
-            <Github className="h-[18px] w-[18px]" />
+            <Github className="h-[17px] w-[17px]" />
           </a>
 
           {user ? (
@@ -105,15 +107,20 @@ export default function App() {
               <LogOut className="h-3.5 w-3.5" />
             </button>
           ) : (
+            // The app's own icon rides inside the button, on a white disc so the colour mark reads
+            // against the indigo: it names the destination better than an arrow glyph would.
             <a
               href={APP_URL}
               target="_blank"
               rel="noreferrer noopener"
-              className="ml-1 inline-flex h-9 shrink-0 items-center gap-1 rounded-full bg-primary px-4 text-[13.5px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              title="Open Attendance IO"
+              className="ml-1 inline-flex h-9 shrink-0 items-center gap-2 rounded-full bg-primary py-1 pl-1 pr-3 text-[13.5px] font-medium text-primary-foreground transition-opacity hover:opacity-90 sm:pr-4"
             >
-              <span className="hidden sm:inline">Open the app</span>
-              <span className="sm:hidden">App</span>
-              <ArrowUpRight className="h-3.5 w-3.5" />
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-white">
+                <Logo className="h-[18px] w-[18px]" />
+              </span>
+              <span className="hidden sm:inline">Open Attendance IO</span>
+              <span className="sm:hidden">Open</span>
             </a>
           )}
         </div>
