@@ -46,8 +46,8 @@ export default function App() {
             <Spark />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-semibold leading-none">Attendance IO</p>
-            <p className="mt-0.5 text-[11px] leading-none text-muted-foreground">Assistant · live demo</p>
+            <p className="truncate text-[15px] font-semibold leading-none">Attendance IO AI</p>
+            <p className="mt-0.5 text-[11px] leading-none text-muted-foreground">The DAU assistant</p>
           </div>
           <a
             href={REPO_URL}
@@ -79,9 +79,17 @@ export default function App() {
                 Ask anything about DAU
               </h1>
               <p className="mx-auto mt-3 max-w-lg text-pretty text-[15px] leading-relaxed text-muted-foreground sm:text-[16px]">
-                The assistant built into <span className="text-foreground">Attendance IO</span>, the app DA-IICT
-                students use every day. It reads the institute's own data and answers in a few seconds — ask
-                it like you'd ask a senior.
+                It has read every notice, handbook, timetable and placement report DA-IICT publishes — and
+                answers in a few seconds. Ask it like you'd ask a senior. The same assistant lives inside{" "}
+                <a
+                  href={APP_URL}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-foreground underline underline-offset-2 decoration-border hover:decoration-foreground"
+                >
+                  Attendance IO
+                </a>
+                , the app students use every day.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-1.5">
                 {CAN_ANSWER.map((topic) => (
