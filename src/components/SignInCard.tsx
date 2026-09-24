@@ -49,8 +49,7 @@ export function SignInCard({
         </p>
       )}
       <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-        Every answer costs real money to generate, so the free questions are few. A Google account gets you{" "}
-        {limit} a day — nothing is posted anywhere, and your attendance data is not involved.
+        A Google account gets you {limit} questions a day, free.
       </p>
 
       {clientId ? (
