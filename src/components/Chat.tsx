@@ -193,29 +193,36 @@ export function Chat({
           onScroll={onListScroll}
           className="h-full overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-4"
         >
-          <div className={cn(CONTENT_WIDTH, "mx-auto flex flex-col gap-3")}>
-            {messages.length === 0 && !blocked ? (
-              <EmptyState
-                suggestions={info?.suggestions?.length ? info.suggestions : FALLBACK_SUGGESTIONS}
-                onPick={(s) => void send(s)}
-              />
-            ) : (
-              messages.map((m) => <Bubble key={m.id} message={m} onRetry={retry} />)
+          <div
+            className={cn(
+              "mx-auto flex min-h-full w-full flex-col",
+              messages.length === 0 ? "justify-center" : "justify-end gap-3"
             )}
-            {blocked && (
-              <SignInCard
-                clientId={info?.googleClientId ?? null}
-                limit={info?.signedInLimit ?? 15}
-                question={pending.current}
-                onSignedIn={(user) => {
-                  onSignedIn(user);
-                  setNeedsSignIn(false);
-                  const question = pending.current;
-                  pending.current = null;
-                  if (question) void send(question);
-                }}
-              />
-            )}
+          >
+            <div className={cn(CONTENT_WIDTH, "mx-auto flex w-full flex-col gap-3")}>
+              {messages.length === 0 && !blocked ? (
+                <EmptyState
+                  suggestions={info?.suggestions?.length ? info.suggestions : FALLBACK_SUGGESTIONS}
+                  onPick={(s) => void send(s)}
+                />
+              ) : (
+                messages.map((m) => <Bubble key={m.id} message={m} onRetry={retry} />)
+              )}
+              {blocked && (
+                <SignInCard
+                  clientId={info?.googleClientId ?? null}
+                  limit={info?.signedInLimit ?? 15}
+                  question={pending.current}
+                  onSignedIn={(user) => {
+                    onSignedIn(user);
+                    setNeedsSignIn(false);
+                    const question = pending.current;
+                    pending.current = null;
+                    if (question) void send(question);
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
 
