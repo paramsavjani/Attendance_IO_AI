@@ -303,7 +303,7 @@ export function Chat({
 
 function EmptyState({ suggestions, onPick }: { suggestions: string[]; onPick: (s: string) => void }) {
   return (
-    <div className="flex flex-col items-center px-1 pb-2 pt-6 text-center">
+    <div className="hero-in flex flex-col items-center px-1 pb-2 pt-6 text-center">
       <Logo className="mb-4 h-16 w-16 drop-shadow-[0_4px_14px_rgba(0,0,0,0.55)]" />
       <h2 className="text-[18px] font-semibold">Ask anything about DAU</h2>
       <p className="mt-1.5 max-w-xs text-[12.5px] leading-relaxed text-muted-foreground">

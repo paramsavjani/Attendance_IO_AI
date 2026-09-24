@@ -33,7 +33,7 @@ export function SignInCard({
   }, [clientId, onSignedIn]);
 
   return (
-    <div className="mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border border-border bg-card px-5 py-6 text-center">
+    <div className="hero-in mx-auto flex w-full max-w-sm flex-col items-center rounded-2xl border border-border bg-card px-5 py-6 text-center">
       <Logo className="mb-3 h-14 w-14 drop-shadow-[0_3px_10px_rgba(0,0,0,0.5)]" />
       <h2 className="text-[16px] font-semibold">Sign in again to keep asking</h2>
 
