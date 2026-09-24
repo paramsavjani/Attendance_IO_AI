@@ -78,8 +78,7 @@
 
 .gemini-border > .gemini-inner {
   border-radius: calc(1.5rem - 1.5px);
-  /* Transparent: the ring alone describes the box, and the page's own field shows through it. */
-  background: transparent;
+  background: hsl(var(--surface));
 }
 
 .gemini-border.is-idle {
