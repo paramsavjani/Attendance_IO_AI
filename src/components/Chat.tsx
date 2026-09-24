@@ -258,7 +258,9 @@ export function Chat({
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}
       >
         <div className={cn("gemini-border mx-auto w-full max-w-answer", composerState)}>
-          <div className="gemini-inner flex flex-col gap-2 px-4 pb-3 pt-3.5 sm:px-5">
+          {/* Padding clears the 24px corner radius on every side — at anything less the first line
+              of text sits inside the curve and the opening character reads as clipped. */}
+          <div className="gemini-inner flex flex-col gap-2 px-5 pb-3.5 pt-5 sm:px-6">
             <textarea
               ref={textarea}
               value={input}
