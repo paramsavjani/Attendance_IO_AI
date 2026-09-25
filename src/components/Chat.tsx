@@ -365,8 +365,8 @@ function EmptyState({
       <p className="mt-2.5 max-w-[44ch] text-[13.5px] leading-relaxed text-muted-foreground sm:mt-3 sm:text-[15px]">
         {fullAccess ? (
           <>
-            Signed in with your <span className="text-foreground">DAU</span> account, so this is the
-            full assistant — your attendance and timetable included.
+            Signed in with your <span className="text-foreground">institute</span> account, so this
+            is the full assistant — your attendance, subjects and timetable included.
           </>
         ) : (
           <>

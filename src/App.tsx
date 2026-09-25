@@ -7,10 +7,8 @@ import { GithubMark } from "./components/GithubMark";
 import { WelcomeSignIn } from "./components/WelcomeSignIn";
 import { fetchDemoInfo, type DemoInfo } from "./lib/agent";
 import {
-  rememberWelcomeClosed,
   signOut,
   storedCredential,
-  welcomeClosed,
   type GoogleUser,
 } from "./lib/auth";
 import { cn } from "./lib/utils";
@@ -24,9 +22,11 @@ export default function App() {
   const [token, setToken] = useState<string | null>(() => storedCredential()?.token ?? null);
   const resetChat = useRef<(() => void) | null>(null);
   const viewportHeight = useVisualViewportHeight();
-  // The first-visit sign-in card: offered to anyone who hasn't signed in and hasn't already closed
-  // it, and only once the server has told us which Google client to sign in with.
-  const [welcomeOpen, setWelcomeOpen] = useState(() => !storedCredential() && !welcomeClosed());
+  // The sign-in card, offered on every visit until someone actually signs in — closing it dismisses
+  // it for this page view, not for the browser. It is the only place that explains what an institute
+  // account gets, so a visitor who never signs in should keep being told. Signing in ends it for
+  // good, because `storedCredential()` is then set on every subsequent load.
+  const [welcomeOpen, setWelcomeOpen] = useState(() => !storedCredential());
 
   const refreshInfo = useCallback(
     (signal?: AbortSignal) => {
@@ -50,10 +50,7 @@ export default function App() {
     setWelcomeOpen(false);
   }, []);
 
-  const closeWelcome = useCallback(() => {
-    rememberWelcomeClosed();
-    setWelcomeOpen(false);
-  }, []);
+  const closeWelcome = useCallback(() => setWelcomeOpen(false), []);
 
   const leave = () => {
     signOut();

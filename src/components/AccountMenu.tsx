@@ -109,7 +109,7 @@ export function AccountMenu({
                 // Worth saying plainly: a DAU account sees its own attendance here, a personal one
                 // does not, and nothing else on the page would explain the difference.
                 <p className="border-t border-border px-4 py-2.5 text-[12.5px] text-primary">
-                  DAU account — your own attendance included
+                  Institute account — your attendance and student data included
                 </p>
               )}
 

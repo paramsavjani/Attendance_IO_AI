@@ -11,7 +11,6 @@
  */
 
 const STORAGE_KEY = "aio.google.credential";
-const WELCOME_KEY = "aio.google.welcomeClosed";
 const SCRIPT_URL = "https://accounts.google.com/gsi/client";
 
 export interface GoogleUser {
@@ -168,27 +167,6 @@ export async function initGoogleSignIn(
       });
     },
   };
-}
-
-/**
- * Whether the first-visit sign-in card has already been closed in this browser. Asking once is an
- * offer; asking on every reload is a wall, which this demo is not.
- */
-export function welcomeClosed(): boolean {
-  try {
-    return localStorage.getItem(WELCOME_KEY) === "1";
-  } catch {
-    // Storage unavailable: the card shows once per page load, which is the safer of the two errors.
-    return false;
-  }
-}
-
-export function rememberWelcomeClosed() {
-  try {
-    localStorage.setItem(WELCOME_KEY, "1");
-  } catch {
-    /* storage unavailable */
-  }
 }
 
 declare global {
