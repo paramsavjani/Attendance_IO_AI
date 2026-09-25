@@ -229,6 +229,7 @@ export function Chat({
               <EmptyState
                 suggestions={info?.suggestions?.length ? info.suggestions : FALLBACK_SUGGESTIONS}
                 fromServer={Boolean(info?.suggestions?.length)}
+                fullAccess={Boolean(info?.fullAccess)}
                 onPick={(s) => void send(s)}
               />
             ) : (
@@ -322,11 +323,14 @@ export function Chat({
 function EmptyState({
   suggestions,
   fromServer,
+  fullAccess,
   onPick
 }: {
   suggestions: string[];
   /** False while the fallback list is standing in for a list the server has not sent yet. */
   fromServer: boolean;
+  /** A signed-in student of the institute: the assistant can answer about them, not just about DAU. */
+  fullAccess: boolean;
   onPick: (s: string) => void;
 }) {
   const pool = suggestions.join("\u0000");
@@ -359,8 +363,17 @@ function EmptyState({
         Ask anything about DAU
       </h2>
       <p className="mt-2.5 max-w-[44ch] text-[13.5px] leading-relaxed text-muted-foreground sm:mt-3 sm:text-[15px]">
-        The assistant inside <span className="text-foreground">Attendance IO</span>. Ask about
-        programmes, faculty, clubs, placements or alumni.
+        {fullAccess ? (
+          <>
+            Signed in with your <span className="text-foreground">DAU</span> account, so this is the
+            full assistant — your attendance and timetable included.
+          </>
+        ) : (
+          <>
+            The assistant inside <span className="text-foreground">Attendance IO</span>. Ask about
+            programmes, faculty, clubs, placements or alumni.
+          </>
+        )}
       </p>
 
       <div className="mt-6 grid w-full gap-2 sm:mt-8 sm:grid-cols-2 sm:gap-2.5">

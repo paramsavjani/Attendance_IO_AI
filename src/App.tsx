@@ -127,6 +127,7 @@ export default function App() {
             clientId={info?.googleClientId ?? null}
             remaining={info?.remaining}
             dailyLimit={info?.signedInLimit}
+            fullAccess={info?.fullAccess}
             onSignedIn={onSignedIn}
             onSignOut={leave}
           />

@@ -17,6 +17,7 @@ export function AccountMenu({
   clientId,
   remaining,
   dailyLimit,
+  fullAccess,
   onSignedIn,
   onSignOut,
 }: {
@@ -24,6 +25,8 @@ export function AccountMenu({
   clientId: string | null;
   remaining?: number;
   dailyLimit?: number;
+  /** Their institute account is recognised, so the assistant can see their own data. */
+  fullAccess?: boolean;
   onSignedIn: (user: GoogleUser) => void;
   onSignOut: () => void;
 }) {
@@ -101,6 +104,14 @@ export function AccountMenu({
                   )}
                 </div>
               </div>
+
+              {fullAccess && (
+                // Worth saying plainly: a DAU account sees its own attendance here, a personal one
+                // does not, and nothing else on the page would explain the difference.
+                <p className="border-t border-border px-4 py-2.5 text-[12.5px] text-primary">
+                  DAU account — your own attendance included
+                </p>
+              )}
 
               {typeof remaining === "number" && typeof dailyLimit === "number" && (
                 <p className="border-t border-border px-4 py-2.5 text-[12.5px] text-muted-foreground">

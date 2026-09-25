@@ -30,6 +30,8 @@ export type AgentStreamEvent =
 
 export interface DemoInfo {
   signedIn: boolean;
+  /** True only for an institute account with a student row: the assistant can see their own data. */
+  fullAccess: boolean;
   name: string | null;
   /** Questions this visitor has left today. Asking for it does not use one up. */
   remaining: number;
