@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Check, Copy, RotateCcw, Square } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, Copy, RotateCcw, Shuffle, Square } from "lucide-react";
 import { Markdown } from "./Markdown";
 import { Logo } from "./Logo";
 import { SignInCard } from "./SignInCard";
 import { STATUS_TEXT, SignInRequiredError, streamDemoChat, type AgentStreamEvent, type DemoInfo } from "@/lib/agent";
 import { cn } from "@/lib/utils";
 import { storedCredential, type GoogleUser } from "@/lib/auth";
+import { lastSuggestions, pickSuggestions, rememberSuggestions } from "@/lib/suggestions";
 
 interface ChatMessage {
   id: string;
@@ -318,6 +319,26 @@ export function Chat({
 }
 
 function EmptyState({ suggestions, onPick }: { suggestions: string[]; onPick: (s: string) => void }) {
+  const pool = suggestions.join("\u0000");
+  // Drawn once, not on every render: the composer re-renders this subtree on each keystroke, and
+  // questions that reshuffled while someone was reading them would be unusable.
+  const [shown, setShown] = useState<string[]>(() => pickSuggestions(suggestions, lastSuggestions()));
+  const drawnFor = useRef(pool);
+
+  // The server's list arrives after the first paint, so the fallback four are replaced once.
+  useEffect(() => {
+    if (drawnFor.current === pool) return;
+    drawnFor.current = pool;
+    setShown(pickSuggestions(suggestions, lastSuggestions()));
+  }, [pool, suggestions]);
+
+  // Whatever ends up on screen is what the next visit avoids.
+  useEffect(() => {
+    rememberSuggestions(shown);
+  }, [shown]);
+
+  const canRotate = suggestions.length > shown.length;
+
   return (
     <div className="hero-in flex flex-col items-center py-6 text-center sm:py-8">
       <Logo className="h-12 w-12 drop-shadow-[0_6px_18px_rgba(0,0,0,0.55)] sm:h-16 sm:w-16" />
@@ -330,17 +351,33 @@ function EmptyState({ suggestions, onPick }: { suggestions: string[]; onPick: (s
       </p>
 
       <div className="mt-6 grid w-full gap-2 sm:mt-8 sm:grid-cols-2 sm:gap-2.5">
-        {suggestions.slice(0, 4).map((suggestion) => (
+        {shown.map((suggestion) => (
           <button
             key={suggestion}
             type="button"
             onClick={() => onPick(suggestion)}
-            className="rounded-xl border border-border bg-surface/60 px-4 py-3 text-left text-[13.5px] leading-snug sm:py-3.5 sm:text-[14.5px] text-foreground/90 transition-colors hover:border-primary/50 hover:bg-surface hover:text-foreground"
+            className="group flex items-start gap-2.5 rounded-xl border border-border bg-surface/60 px-4 py-3 text-left text-[13.5px] leading-snug text-foreground/90 transition-colors hover:border-primary/50 hover:bg-surface hover:text-foreground sm:py-3.5 sm:text-[14.5px]"
           >
-            {suggestion}
+            {/* Marks each card as something to press rather than something to read, and gives the
+                wrapped second line a straight edge to sit against. */}
+            <ArrowUp className="mt-[3px] h-3.5 w-3.5 shrink-0 rotate-45 text-muted-foreground transition-colors group-hover:text-primary" />
+            <span className="min-w-0">{suggestion}</span>
           </button>
         ))}
       </div>
+
+      {/* A refresh already brings different questions; this is for someone who wants another set
+          without losing the page. Hidden when the server's list is too short to have another set. */}
+      {canRotate && (
+        <button
+          type="button"
+          onClick={() => setShown((current) => pickSuggestions(suggestions, current))}
+          className="mt-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] text-muted-foreground transition-colors hover:text-foreground sm:mt-5"
+        >
+          <Shuffle className="h-3.5 w-3.5" />
+          Other questions
+        </button>
+      )}
     </div>
   );
 }
