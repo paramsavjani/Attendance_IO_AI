@@ -228,6 +228,7 @@ export function Chat({
             {messages.length === 0 && !blocked ? (
               <EmptyState
                 suggestions={info?.suggestions?.length ? info.suggestions : FALLBACK_SUGGESTIONS}
+                fromServer={Boolean(info?.suggestions?.length)}
                 onPick={(s) => void send(s)}
               />
             ) : (
@@ -318,7 +319,16 @@ export function Chat({
   );
 }
 
-function EmptyState({ suggestions, onPick }: { suggestions: string[]; onPick: (s: string) => void }) {
+function EmptyState({
+  suggestions,
+  fromServer,
+  onPick
+}: {
+  suggestions: string[];
+  /** False while the fallback list is standing in for a list the server has not sent yet. */
+  fromServer: boolean;
+  onPick: (s: string) => void;
+}) {
   const pool = suggestions.join("\u0000");
   // Drawn once, not on every render: the composer re-renders this subtree on each keystroke, and
   // questions that reshuffled while someone was reading them would be unusable.
@@ -332,10 +342,13 @@ function EmptyState({ suggestions, onPick }: { suggestions: string[]; onPick: (s
     setShown(pickSuggestions(suggestions, lastSuggestions()));
   }, [pool, suggestions]);
 
-  // Whatever ends up on screen is what the next visit avoids.
+  // Only a set drawn from the server's list is worth remembering. The fallback four are a placeholder
+  // on screen for a few hundred milliseconds, and they are a subset of the server's list — so writing
+  // them down whenever /info is slow or fails overwrites the real record of what the visitor last saw,
+  // and the next visit then excludes the wrong four.
   useEffect(() => {
-    rememberSuggestions(shown);
-  }, [shown]);
+    if (fromServer) rememberSuggestions(shown);
+  }, [shown, fromServer]);
 
   const canRotate = suggestions.length > shown.length;
 
