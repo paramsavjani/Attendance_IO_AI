@@ -11,6 +11,7 @@
  */
 
 const STORAGE_KEY = "aio.google.credential";
+const WELCOME_KEY = "aio.google.welcomeClosed";
 const SCRIPT_URL = "https://accounts.google.com/gsi/client";
 
 export interface GoogleUser {
@@ -107,9 +108,9 @@ export interface SignInHandles {
 type IdentityApi = NonNullable<NonNullable<Window["google"]>["accounts"]>["id"];
 
 // One identity client for the whole page — Google's initialize() may only run once per client id.
-// The callback it fires into is swapped out per caller instead, so both the rendered button (once
-// the free questions run out) and the passive one-tap nudge (right after the first answer) resolve
-// through the same session no matter which one the visitor actually used.
+// The callback it fires into is swapped out per caller instead, so the welcome card, the header
+// button and the wall at the end of the free questions all resolve through the same session no
+// matter which one the visitor actually used.
 let identityPromise: Promise<IdentityApi | null> | null = null;
 let activeCallback: ((user: GoogleUser) => void) | null = null;
 
@@ -170,16 +171,24 @@ export async function initGoogleSignIn(
 }
 
 /**
- * A passive, dismissible nudge — Google's own One Tap card, floated in a corner by Google itself.
- * Meant to run once, after a visitor's first answer, for anyone who would rather sign in early than
- * wait to be asked. It never blocks the page: closing it (or Google declining to show it at all,
- * which it does often — cooldowns, no eligible session, browser settings) just leaves the free
- * questions running as normal.
+ * Whether the first-visit sign-in card has already been closed in this browser. Asking once is an
+ * offer; asking on every reload is a wall, which this demo is not.
  */
-export async function nudgeGoogleOneTap(clientId: string, onSignedIn: (user: GoogleUser) => void): Promise<void> {
-  activeCallback = onSignedIn;
-  const identity = await ensureIdentity(clientId);
-  identity?.prompt?.();
+export function welcomeClosed(): boolean {
+  try {
+    return localStorage.getItem(WELCOME_KEY) === "1";
+  } catch {
+    // Storage unavailable: the card shows once per page load, which is the safer of the two errors.
+    return false;
+  }
+}
+
+export function rememberWelcomeClosed() {
+  try {
+    localStorage.setItem(WELCOME_KEY, "1");
+  } catch {
+    /* storage unavailable */
+  }
 }
 
 declare global {
@@ -193,7 +202,6 @@ declare global {
             auto_select?: boolean;
           }) => void;
           renderButton: (parent: HTMLElement, options: Record<string, string | number>) => void;
-          prompt?: () => void;
           disableAutoSelect?: () => void;
         };
       };
