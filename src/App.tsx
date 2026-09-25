@@ -146,8 +146,6 @@ export default function App() {
       {welcomeOpen && !user && info?.googleClientId && (
         <WelcomeSignIn
           clientId={info.googleClientId}
-          freeQuestions={info.limit}
-          signedInLimit={info.signedInLimit}
           onSignedIn={onSignedIn}
           onClose={closeWelcome}
         />
