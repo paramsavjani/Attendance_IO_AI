@@ -4,8 +4,15 @@ import { Chat } from "./components/Chat";
 import { Logo } from "./components/Logo";
 import { AccountMenu } from "./components/AccountMenu";
 import { GithubMark } from "./components/GithubMark";
+import { WelcomeSignIn } from "./components/WelcomeSignIn";
 import { fetchDemoInfo, type DemoInfo } from "./lib/agent";
-import { nudgeGoogleOneTap, signOut, storedCredential, type GoogleUser } from "./lib/auth";
+import {
+  rememberWelcomeClosed,
+  signOut,
+  storedCredential,
+  welcomeClosed,
+  type GoogleUser,
+} from "./lib/auth";
 import { cn } from "./lib/utils";
 
 const APP_URL = "https://attendanceio.paramsavjani.in";
@@ -17,7 +24,9 @@ export default function App() {
   const [token, setToken] = useState<string | null>(() => storedCredential()?.token ?? null);
   const resetChat = useRef<(() => void) | null>(null);
   const viewportHeight = useVisualViewportHeight();
-  const nudgedOneTap = useRef(false);
+  // The first-visit sign-in card: offered to anyone who hasn't signed in and hasn't already closed
+  // it, and only once the server has told us which Google client to sign in with.
+  const [welcomeOpen, setWelcomeOpen] = useState(() => !storedCredential() && !welcomeClosed());
 
   const refreshInfo = useCallback(
     (signal?: AbortSignal) => {
@@ -38,16 +47,13 @@ export default function App() {
     const stored = storedCredential();
     setUser(signedIn);
     setToken(stored?.token ?? null);
+    setWelcomeOpen(false);
   }, []);
 
-  // Once, right after their first answer: Google's own dismissible card, for anyone who would
-  // rather sign in early than wait to be asked. Never on the very first paint — that would read as
-  // a login wall before a visitor has seen the assistant do anything.
-  const offerOneTap = useCallback(() => {
-    if (nudgedOneTap.current || user || !info?.googleClientId) return;
-    nudgedOneTap.current = true;
-    void nudgeGoogleOneTap(info.googleClientId, onSignedIn);
-  }, [info?.googleClientId, onSignedIn, user]);
+  const closeWelcome = useCallback(() => {
+    rememberWelcomeClosed();
+    setWelcomeOpen(false);
+  }, []);
 
   const leave = () => {
     signOut();
@@ -131,14 +137,21 @@ export default function App() {
         info={info}
         token={token}
         onSignedIn={onSignedIn}
-        onAnswered={() => {
-          refreshInfo();
-          offerOneTap();
-        }}
+        onAnswered={refreshInfo}
         onReset={(reset) => {
           resetChat.current = reset;
         }}
       />
+
+      {welcomeOpen && !user && info?.googleClientId && (
+        <WelcomeSignIn
+          clientId={info.googleClientId}
+          freeQuestions={info.limit}
+          signedInLimit={info.signedInLimit}
+          onSignedIn={onSignedIn}
+          onClose={closeWelcome}
+        />
+      )}
     </div>
   );
 }
