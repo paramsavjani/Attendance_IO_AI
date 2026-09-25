@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { LogOut } from "lucide-react";
+import { BadgeCheck, LogOut } from "lucide-react";
 import { GoogleButton } from "./GoogleButton";
 import { GoogleTrigger } from "./GoogleTrigger";
 import type { GoogleUser } from "@/lib/auth";
@@ -64,7 +64,7 @@ export function AccountMenu({
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label="Your account"
-          className="flex h-9 w-9 items-center justify-center rounded-full ring-1 ring-border transition-all hover:ring-2 hover:ring-primary/60"
+          className="relative flex h-9 w-9 items-center justify-center rounded-full ring-1 ring-border transition-all hover:ring-2 hover:ring-primary/60"
         >
           {user.picture ? (
             <img src={user.picture} alt="" className="h-full w-full rounded-full" referrerPolicy="no-referrer" />
@@ -72,6 +72,14 @@ export function AccountMenu({
             <span className="grid h-full w-full place-items-center rounded-full bg-muted text-[12px] font-medium">
               {(user.name ?? "?").slice(0, 1).toUpperCase()}
             </span>
+          )}
+          {/* The mark rides on the avatar itself: being recognised is worth seeing without opening
+              a panel, and it is the only thing in the bar that changes between the two tiers. */}
+          {fullAccess && (
+            <BadgeCheck
+              aria-hidden
+              className="absolute -bottom-0.5 -right-0.5 h-[15px] w-[15px] rounded-full bg-background text-primary"
+            />
           )}
         </button>
       ) : (
@@ -98,7 +106,12 @@ export function AccountMenu({
                   </span>
                 )}
                 <div className="min-w-0">
-                  {user.name && <p className="truncate text-[14px] font-medium leading-tight">{user.name}</p>}
+                  {user.name && (
+                    <p className="flex items-center gap-1.5 text-[14px] font-medium leading-tight">
+                      <span className="truncate">{user.name}</span>
+                      {fullAccess && <BadgeCheck aria-label="Verified institute account" className="h-4 w-4 shrink-0 text-primary" />}
+                    </p>
+                  )}
                   {user.email && (
                     <p className="mt-0.5 truncate text-[12px] leading-tight text-muted-foreground">{user.email}</p>
                   )}
@@ -106,11 +119,15 @@ export function AccountMenu({
               </div>
 
               {fullAccess && (
-                // Worth saying plainly: a DAU account sees its own attendance here, a personal one
-                // does not, and nothing else on the page would explain the difference.
-                <p className="border-t border-border px-4 py-2.5 text-[12.5px] text-primary">
-                  Institute account — your attendance and student data included
-                </p>
+                // Deliberately general. A personal account cannot see any of this, and nothing else
+                // on the page explains the difference — but not everyone verified here is a current
+                // student with attendance worth reading, so what is promised is the access itself.
+                <div className="border-t border-border px-4 py-2.5">
+                  <p className="text-[12.5px] font-medium text-primary">Verified institute account</p>
+                  <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">
+                    Full access — look up students, alumni and your own records.
+                  </p>
+                </div>
               )}
 
               {typeof remaining === "number" && typeof dailyLimit === "number" && (
